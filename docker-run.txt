@@ -1,0 +1,186 @@
+#Run using docker
+
+Step 1: Start docker
+
+docker run --name pg-abac \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=university_abac \
+  -p 5433:5432 \
+  -v "$PWD":/pg_abac \
+  -d postgres:15
+
+Step 2: Enter container
+docker exec -it pg-abac bash
+
+Step 3: Install dependencies
+apt update
+apt install -y build-essential postgresql-server-dev-15
+
+Step 4: Build extension
+cd pg_abac
+make clean
+make
+make install
+
+Step 5: Create extension
+psql -U postgres -d university_abac -c "CREATE EXTENSION IF NOT EXISTS pg_abac;"
+
+Step 6: Load Database
+psql -U postgres -d university_abac -f "DDL+drop.sql"
+psql -U postgres -d university_abac -f "largeRelationsInsertFile.sql"
+
+Step 7: Apply ABAC setup
+psql -U postgres -d university_abac -f demo/setup_abac_university.sql
+
+
+Demo:
+psql -U postgres -d university_abac
+
+SET ROLE alice_cs;
+SELECT ID, name, dept_name
+FROM student
+LIMIT 20;
+
+RESET ROLE;
+SET ROLE bob_bio;
+SELECT ID, name, dept_name
+FROM student
+LIMIT 20;
+
+Test Inactive user policies:
+
+RESET ROLE;
+
+UPDATE abac_user_attributes
+SET attribute_value = 'inactive'
+WHERE username = 'alice_cs'
+AND attribute_name = 'status';
+
+SET ROLE alice_cs;
+
+SELECT ID, name, dept_name
+FROM student
+LIMIT 20;
+
+Expected : 0 rows as Alice is set inactive
+
+Set active again:
+
+RESET ROLE;
+
+UPDATE abac_user_attributes
+SET attribute_value = 'active'
+WHERE username = 'alice_cs'
+AND attribute_name = 'status';
+
+SELECT ID, name, dept_name
+FROM student
+LIMIT 20;
+
+Results: Courses from Comp Sci dept
+
+Check Policies:
+SELECT tablename, policyname, cmd, qual
+FROM pg_policies
+WHERE schemaname = 'public';
+
+ADD PLOICY ON Course:
+
+ALTER TABLE course ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS course_department_policy ON course;
+
+CREATE POLICY course_department_policy
+ON course
+FOR SELECT
+USING (
+    dept_name = abac_get_user_attribute(current_user, 'department')
+    AND abac_get_user_attribute(current_user, 'status') = 'active'
+);
+
+Test:
+
+SET ROLE alice_cs;
+
+# Displays courses with Comp Sci Dept
+SELECT course_id, title, dept_name
+FROM course
+LIMIT 20;
+
+ADD POLICY ON Instructor:
+
+RESET ROLE;
+
+ALTER TABLE instructor ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS instructor_department_policy ON instructor;
+
+CREATE POLICY instructor_department_policy
+ON instructor
+FOR SELECT
+USING (
+    dept_name = abac_get_user_attribute(current_user, 'department')
+    AND abac_get_user_attribute(current_user, 'status') = 'active'
+);
+
+Test:
+
+SET ROLE alice_cs;
+
+SELECT ID, name, dept_name, salary
+FROM instructor
+LIMIT 20;
+
+
+ADD CLEARENCE LEVEL POLICY:
+
+RESET ROLE;
+
+SELECT abac_set_user_attribute('alice_cs', 'clearance', 'high');
+SELECT abac_set_user_attribute('bob_bio', 'clearance', 'low');
+
+DROP POLICY IF EXISTS instructor_clearance_policy ON instructor;
+
+CREATE POLICY instructor_clearance_policy
+ON instructor
+FOR SELECT
+USING (
+    abac_get_user_attribute(current_user, 'clearance') = 'high'
+);
+
+Note: PostgreSQL combines multiple RLS policies with OR by default for permissive policies. For stricter AND logic, create one combined policy instead.
+
+Better combined policy:
+
+DROP POLICY IF EXISTS instructor_department_policy ON instructor;
+DROP POLICY IF EXISTS instructor_clearance_policy ON instructor;
+
+CREATE POLICY instructor_combined_policy
+ON instructor
+FOR SELECT
+USING (
+    dept_name = abac_get_user_attribute(current_user, 'department')
+    AND abac_get_user_attribute(current_user, 'status') = 'active'
+    AND abac_get_user_attribute(current_user, 'clearance') = 'high'
+);
+
+Test Alice:
+SET ROLE alice_cs;
+
+SELECT ID, name, dept_name, salary
+FROM instructor
+LIMIT 20;
+
+Expected: Comp. Sci. instructors visible
+
+Test Bob:
+
+RESET ROLE;
+SET ROLE bob_bio;
+
+SELECT ID, name, dept_name, salary
+FROM instructor
+LIMIT 20;
+
+Expected: 0 rows because bob_bio has low clearance
+
