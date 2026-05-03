@@ -75,7 +75,7 @@ Stores subject/user attributes.
 
 | Column | Purpose |
 |---|---|
-| `username` | PostgreSQL role name, such as `alice_cs`. |
+| `username` | PostgreSQL role name, such as `cs_user`. |
 | `attribute_name` | Attribute name, such as `department`, `status`, `clearance`, or `salary_threshold`. |
 | `attribute_value` | Attribute value, such as `Comp. Sci.`, `active`, or `70000`. |
 | `created_at` | Audit timestamp for creation. |

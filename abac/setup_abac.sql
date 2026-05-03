@@ -5,47 +5,47 @@ CREATE EXTENSION IF NOT EXISTS pg_abac;
 /* Demo roles */
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'alice_cs') THEN
-        CREATE ROLE alice_cs LOGIN PASSWORD 'alice_cs';
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'cs_user') THEN
+        CREATE ROLE cs_user LOGIN PASSWORD 'cs_user';
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'bob_bio') THEN
-        CREATE ROLE bob_bio LOGIN PASSWORD 'bob_bio';
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'bio_user') THEN
+        CREATE ROLE bio_user LOGIN PASSWORD 'bio_user';
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'charlie_registrar') THEN
-        CREATE ROLE charlie_registrar LOGIN PASSWORD 'charlie_registrar';
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'registrar') THEN
+        CREATE ROLE registrar LOGIN PASSWORD 'registrar';
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'eve_inactive') THEN
-        CREATE ROLE eve_inactive LOGIN PASSWORD 'eve_inactive';
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'inactive_user') THEN
+        CREATE ROLE inactive_user LOGIN PASSWORD 'inactive_user';
     END IF;
 END $$;
 
-GRANT USAGE ON SCHEMA public TO alice_cs, bob_bio, charlie_registrar, eve_inactive;
-GRANT SELECT ON department, instructor, student, course, section, teaches, takes, advisor, prereq, classroom, time_slot TO alice_cs, bob_bio, charlie_registrar, eve_inactive;
-GRANT SELECT ON abac_user_attributes, abac_rules, abac_rule_conditions, abac_policies TO alice_cs, bob_bio, charlie_registrar, eve_inactive;
-GRANT EXECUTE ON FUNCTION abac_get_user_attribute(text, text) TO alice_cs, bob_bio, charlie_registrar, eve_inactive;
-GRANT EXECUTE ON FUNCTION abac_check_access(text, jsonb) TO alice_cs, bob_bio, charlie_registrar, eve_inactive;
-GRANT EXECUTE ON FUNCTION abac_compare_values(text, text, text, text) TO alice_cs, bob_bio, charlie_registrar, eve_inactive;
+GRANT USAGE ON SCHEMA public TO cs_user, bio_user, registrar, inactive_user;
+GRANT SELECT ON department, instructor, student, course, section, teaches, takes, advisor, prereq, classroom, time_slot TO cs_user, bio_user, registrar, inactive_user;
+GRANT SELECT ON abac_user_attributes, abac_rules, abac_rule_conditions, abac_policies TO cs_user, bio_user, registrar, inactive_user;
+GRANT EXECUTE ON FUNCTION abac_get_user_attribute(text, text) TO cs_user, bio_user, registrar, inactive_user;
+GRANT EXECUTE ON FUNCTION abac_check_access(text, jsonb) TO cs_user, bio_user, registrar, inactive_user;
+GRANT EXECUTE ON FUNCTION abac_compare_values(text, text, text, text) TO cs_user, bio_user, registrar, inactive_user;
 
 /* Subject attributes used by ABAC. */
-SELECT abac_set_user_attribute('alice_cs', 'department', 'Comp. Sci.');
-SELECT abac_set_user_attribute('alice_cs', 'status', 'active');
-SELECT abac_set_user_attribute('alice_cs', 'clearance', 'normal');
-SELECT abac_set_user_attribute('alice_cs', 'salary_threshold', '70000');
+SELECT abac_set_user_attribute('cs_user', 'department', 'Comp. Sci.');
+SELECT abac_set_user_attribute('cs_user', 'status', 'active');
+SELECT abac_set_user_attribute('cs_user', 'clearance', 'normal');
+SELECT abac_set_user_attribute('cs_user', 'salary_threshold', '70000');
 
-SELECT abac_set_user_attribute('bob_bio', 'department', 'Biology');
-SELECT abac_set_user_attribute('bob_bio', 'status', 'active');
-SELECT abac_set_user_attribute('bob_bio', 'clearance', 'normal');
-SELECT abac_set_user_attribute('bob_bio', 'salary_threshold', '70000');
+SELECT abac_set_user_attribute('bio_user', 'department', 'Biology');
+SELECT abac_set_user_attribute('bio_user', 'status', 'active');
+SELECT abac_set_user_attribute('bio_user', 'clearance', 'normal');
+SELECT abac_set_user_attribute('bio_user', 'salary_threshold', '70000');
 
-SELECT abac_set_user_attribute('charlie_registrar', 'department', 'Registrar');
-SELECT abac_set_user_attribute('charlie_registrar', 'status', 'active');
-SELECT abac_set_user_attribute('charlie_registrar', 'clearance', 'high');
-SELECT abac_set_user_attribute('charlie_registrar', 'salary_threshold', '70000');
+SELECT abac_set_user_attribute('registrar', 'department', 'Registrar');
+SELECT abac_set_user_attribute('registrar', 'status', 'active');
+SELECT abac_set_user_attribute('registrar', 'clearance', 'high');
+SELECT abac_set_user_attribute('registrar', 'salary_threshold', '70000');
 
-SELECT abac_set_user_attribute('eve_inactive', 'department', 'Comp. Sci.');
-SELECT abac_set_user_attribute('eve_inactive', 'status', 'inactive');
-SELECT abac_set_user_attribute('eve_inactive', 'clearance', 'high');
-SELECT abac_set_user_attribute('eve_inactive', 'salary_threshold', '70000');
+SELECT abac_set_user_attribute('inactive_user', 'department', 'Comp. Sci.');
+SELECT abac_set_user_attribute('inactive_user', 'status', 'inactive');
+SELECT abac_set_user_attribute('inactive_user', 'clearance', 'high');
+SELECT abac_set_user_attribute('inactive_user', 'salary_threshold', '70000');
 
 /* Reset rules so this script can be rerun. */
 DELETE FROM abac_rules;

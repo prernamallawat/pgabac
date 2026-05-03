@@ -18,15 +18,15 @@ ORDER BY tablename;
 
 \echo 'Verify role-specific row counts'
 RESET ROLE;
-SET ROLE alice_cs;
-SELECT 'alice_cs student rows' AS test, COUNT(*) AS count FROM student;
+SET ROLE cs_user;
+SELECT 'cs_user student rows' AS test, COUNT(*) AS count FROM student;
 RESET ROLE;
-SET ROLE bob_bio;
-SELECT 'bob_bio student rows' AS test, COUNT(*) AS count FROM student;
+SET ROLE bio_user;
+SELECT 'bio_user student rows' AS test, COUNT(*) AS count FROM student;
 RESET ROLE;
-SET ROLE eve_inactive;
-SELECT 'eve_inactive student rows' AS test, COUNT(*) AS count FROM student;
+SET ROLE inactive_user;
+SELECT 'inactive_user student rows' AS test, COUNT(*) AS count FROM student;
 RESET ROLE;
-SET ROLE charlie_registrar;
-SELECT 'charlie_registrar student rows' AS test, COUNT(*) AS count FROM student;
+SET ROLE registrar;
+SELECT 'registrar student rows' AS test, COUNT(*) AS count FROM student;
 RESET ROLE;
