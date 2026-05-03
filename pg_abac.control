@@ -1,0 +1,4 @@
+comment = 'Attribute-Based Access Control policy engine using PostgreSQL RLS'
+default_version = '1.0'
+module_pathname = '$libdir/pg_abac'
+relocatable = true
