@@ -31,6 +31,7 @@ SELECT abac_set_user_attribute('cs_user', 'department', 'Comp. Sci.');
 SELECT abac_set_user_attribute('cs_user', 'status', 'active');
 SELECT abac_set_user_attribute('cs_user', 'clearance', 'normal');
 SELECT abac_set_user_attribute('cs_user', 'salary_threshold', '70000');
+SELECT abac_set_user_attribute('cs_user', 'credits', '3');
 
 SELECT abac_set_user_attribute('bio_user', 'department', 'Biology');
 SELECT abac_set_user_attribute('bio_user', 'status', 'active');
@@ -72,6 +73,10 @@ SELECT abac_add_condition('course_dept_active', NULL, 'status', '=', 'active', '
 SELECT abac_add_rule('course_high_clearance_active', 'course', 'High-clearance active users can see all courses');
 SELECT abac_add_condition('course_high_clearance_active', NULL, 'clearance', '=', 'high', 'text', 1);
 SELECT abac_add_condition('course_high_clearance_active', NULL, 'status', '=', 'active', 'text', 2);
+
+SELECT abac_add_rule('course_credit', 'course', 'Courses visible when row dept matches user department and credit is >= 3');
+SELECT abac_add_condition('course_credit', 'dept_name', 'department', '=', NULL, 'text', 1);
+SELECT abac_add_condition('course_credit', 'credits', 'credits', '>=', NULL, 'text', 2);
 
 /*
  * INSTRUCTOR rules:

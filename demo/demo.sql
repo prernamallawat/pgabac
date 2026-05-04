@@ -1,25 +1,25 @@
-\set ON_ERROR_STOP 1
-\echo '========== ABAC PROJECT DEMO =========='
 
-\echo ''
+\x auto
+\pset border 2
+\pset linestyle unicode
+\pset format wrapped
+\pset pager on
+
+SELECT rolname FROM pg_roles;
+
 \echo '1) Show metadata: user attributes'
-TABLE abac_user_attributes;
+SELECT * from abac_user_attributes;
 
-\echo ''
 \echo '2) Show rule table: multiple rules per table are OR-ed'
-SELECT rule_id, rule_name, table_name, is_enabled, description
-FROM abac_rules
-ORDER BY table_name, rule_id;
+SELECT * from abac_rules;
 
-\echo ''
-\echo '3) Show conditions: conditions within same rule_id are AND-ed'
+\echo ') Show conditions: conditions within same rule_id are AND-ed'
 SELECT r.table_name, r.rule_name, c.condition_order, c.column_name, c.user_attribute,
        c.operator, c.constant_value, c.value_type
 FROM abac_rules r
 JOIN abac_rule_conditions c ON c.rule_id = r.rule_id
 ORDER BY r.table_name, r.rule_id, c.condition_order;
 
-\echo ''
 \echo '4) Admin baseline: all student departments in database'
 RESET ROLE;
 SELECT dept_name, COUNT(*) AS rows_visible
@@ -27,7 +27,6 @@ FROM student
 GROUP BY dept_name
 ORDER BY dept_name;
 
-\echo ''
 \echo '5) cs_user runs the SAME query. Expected: only Comp. Sci. students because department matches and status is active.'
 SET ROLE cs_user;
 SELECT dept_name, COUNT(*) AS rows_visible
@@ -35,7 +34,6 @@ FROM student
 GROUP BY dept_name
 ORDER BY dept_name;
 
-\echo ''
 \echo '6) bio_user runs the SAME query. Expected: only Biology students.'
 RESET ROLE;
 SET ROLE bio_user;
@@ -44,14 +42,12 @@ FROM student
 GROUP BY dept_name
 ORDER BY dept_name;
 
-\echo ''
 \echo '7) inactive_user has high clearance but inactive status. Expected: 0 student rows because active status is required.'
 RESET ROLE;
 SET ROLE inactive_user;
-SELECT COUNT(*) AS eve_student_rows_visible
+SELECT COUNT(*) AS inactive_student_rows_visible
 FROM student;
 
-\echo ''
 \echo '8) registrar has high clearance and active status. Expected: all student departments visible through override rule.'
 RESET ROLE;
 SET ROLE registrar;
@@ -60,16 +56,6 @@ FROM student
 GROUP BY dept_name
 ORDER BY dept_name;
 
-\echo ''
-\echo '9) Course policy test for cs_user. Expected: Comp. Sci. courses only.'
-RESET ROLE;
-SET ROLE cs_user;
-SELECT dept_name, COUNT(*) AS rows_visible
-FROM course
-GROUP BY dept_name
-ORDER BY dept_name;
-
-\echo ''
 \echo '10) Instructor numeric operator test. Rule includes salary > user.salary_threshold AND status = active.'
 \echo 'cs_user has salary_threshold = 70000. This demonstrates support for > operator.'
 RESET ROLE;
@@ -81,18 +67,16 @@ FROM instructor
 ORDER BY salary DESC
 LIMIT 10;
 
-\echo ''
-\echo '11) Disable numeric salary rule to show rule-level control; cs_user should lose instructor visibility because she does not have high clearance.'
+\echo 'Check course without ABAC'
 RESET ROLE;
-SELECT abac_disable_rule('instructor_salary_above_threshold_active');
+SELECT count(*) from course where credits >= 3 and dept_name = 'Comp. Sci.';
+
+\echo 'Check course with ABAC (dept_name = Comp. Sci and credits >=3)'
+RESET ROLE;
 SET ROLE cs_user;
-SELECT COUNT(*) AS visible_instructors_after_rule_disabled
-FROM instructor;
+SELECT * from course;
 
-\echo ''
-\echo '12) Re-enable numeric salary rule for final state.'
-RESET ROLE;
-SELECT abac_enable_rule('instructor_salary_above_threshold_active');
 
-\echo ''
-\echo '========== DEMO COMPLETE =========='
+
+
+
