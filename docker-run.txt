@@ -30,16 +30,20 @@ docker exec -it pg-abac psql -U postgres -d university_abac
 # ═══════════════════════════════════════════════════════
 # OPTIONAL — Run demo and benchmarks
 # ═══════════════════════════════════════════════════════
-# Also run from inside the psql session.
 
+# Run demo (inside psql session):
 \i /pg_abac/demo/demo.sql
 
-# Benchmarks — run these in the container shell (not psql).
-# To open a container shell:  docker exec -it pg-abac bash
+# Run demo directly from terminal (without entering psql first):
+docker exec -it pg-abac psql -U postgres -d university_abac -f /pg_abac/demo/demo.sql
 
-pgbench -U postgres -d university_abac -f benchmark/baseline.sql -T 30
-pgbench -U postgres -d university_abac -f benchmark/abac_enabled.sql -T 30
-pgbench -U postgres -d university_abac -f benchmark/policy_complexity.sql -T 30
+# Run verification directly from terminal:
+docker exec -it pg-abac psql -U postgres -d university_abac -f /pg_abac/abac/verify_abac.sql
+
+# Benchmarks — run these directly from terminal (not inside psql):
+docker exec -it pg-abac pgbench -U postgres -d university_abac -f /pg_abac/benchmark/baseline.sql -T 30
+docker exec -it pg-abac pgbench -U postgres -d university_abac -f /pg_abac/benchmark/abac_enabled.sql -T 30
+docker exec -it pg-abac pgbench -U postgres -d university_abac -f /pg_abac/benchmark/policy_complexity.sql -T 30
 
 # ═══════════════════════════════════════════════════════
 # STOPPING AND RESTARTING

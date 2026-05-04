@@ -17,14 +17,17 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'inactive_user') THEN
         CREATE ROLE inactive_user LOGIN PASSWORD 'inactive_user';
     END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'title_user') THEN
+        CREATE ROLE title_user LOGIN PASSWORD 'title_user';
+    END IF;
 END $$;
 
-GRANT USAGE ON SCHEMA public TO cs_user, bio_user, registrar, inactive_user;
-GRANT SELECT ON department, instructor, student, course, section, teaches, takes, advisor, prereq, classroom, time_slot TO cs_user, bio_user, registrar, inactive_user;
-GRANT SELECT ON abac_user_attributes, abac_rules, abac_rule_conditions, abac_policies TO cs_user, bio_user, registrar, inactive_user;
-GRANT EXECUTE ON FUNCTION abac_get_user_attribute(text, text) TO cs_user, bio_user, registrar, inactive_user;
-GRANT EXECUTE ON FUNCTION abac_check_access(text, jsonb) TO cs_user, bio_user, registrar, inactive_user;
-GRANT EXECUTE ON FUNCTION abac_compare_values(text, text, text, text) TO cs_user, bio_user, registrar, inactive_user;
+GRANT USAGE ON SCHEMA public TO cs_user, bio_user, registrar, inactive_user, title_user;
+GRANT SELECT ON department, instructor, student, course, section, teaches, takes, advisor, prereq, classroom, time_slot TO cs_user, bio_user, registrar, inactive_user, title_user;
+GRANT SELECT ON abac_user_attributes, abac_rules, abac_rule_conditions, abac_policies TO cs_user, bio_user, registrar, inactive_user, title_user;
+GRANT EXECUTE ON FUNCTION abac_get_user_attribute(text, text) TO cs_user, bio_user, registrar, inactive_user, title_user;
+GRANT EXECUTE ON FUNCTION abac_check_access(text, jsonb) TO cs_user, bio_user, registrar, inactive_user, title_user;
+GRANT EXECUTE ON FUNCTION abac_compare_values(text, text, text, text) TO cs_user, bio_user, registrar, inactive_user, title_user;
 
 /* Subject attributes used by ABAC. */
 SELECT abac_set_user_attribute('cs_user', 'department', 'Comp. Sci.');
@@ -47,6 +50,10 @@ SELECT abac_set_user_attribute('inactive_user', 'department', 'Comp. Sci.');
 SELECT abac_set_user_attribute('inactive_user', 'status', 'inactive');
 SELECT abac_set_user_attribute('inactive_user', 'clearance', 'high');
 SELECT abac_set_user_attribute('inactive_user', 'salary_threshold', '70000');
+
+/* title_user: ONLY has a title pattern — no dept, no status, no clearance.
+   This ensures access is granted exclusively through the LIKE rule on course.title. */
+SELECT abac_set_user_attribute('title_user', 'title_pattern', '%Systems%');
 
 /* Reset rules so this script can be rerun. */
 DELETE FROM abac_rules;
@@ -77,6 +84,12 @@ SELECT abac_add_condition('course_high_clearance_active', NULL, 'status', '=', '
 SELECT abac_add_rule('course_credit', 'course', 'Courses visible when row dept matches user department and credit is >= 3');
 SELECT abac_add_condition('course_credit', 'dept_name', 'department', '=', NULL, 'text', 1);
 SELECT abac_add_condition('course_credit', 'credits', 'credits', '>=', NULL, 'text', 2);
+
+/* LIKE rule: grants access based on course title matching a user-defined pattern.
+   title_user has title_pattern = '%Systems%' so they see only courses with Systems in the title.
+   No other rules apply to title_user, making this a pure LIKE demonstration. */
+SELECT abac_add_rule('course_title_like', 'course', 'LIKE rule: course title matches user title_pattern attribute');
+SELECT abac_add_condition('course_title_like', 'title', 'title_pattern', 'LIKE', NULL, 'text', 1);
 
 /*
  * INSTRUCTOR rules:
@@ -109,7 +122,7 @@ CREATE POLICY abac_course_select
 ON course
 FOR SELECT
 USING (
-    abac_check_access('course', jsonb_build_object('dept_name', dept_name, 'credits', credits))
+    abac_check_access('course', jsonb_build_object('dept_name', dept_name, 'credits', credits, 'title', title))
 );
 
 DROP POLICY IF EXISTS abac_instructor_select ON instructor;

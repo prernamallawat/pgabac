@@ -95,28 +95,22 @@ SELECT abac_compare_values('Comp. Sci.', 'LIKE', 'Comp%', 'text') AS engine_like
 SELECT abac_compare_values('Biology',    'NOT LIKE', 'Comp%', 'text') AS engine_not_like;
 
 -- ─────────────────────────────────────────────────────────────
-\echo '12) LIKE operator — live RLS rule using dept_name pattern'
-\echo '    Give cs_user a dept_pattern attribute: Comp%'
-\echo '    Add a LIKE rule on the department table and verify filtering.'
+\echo '12) LIKE operator — live RLS rule on course.title'
+\echo '    title_user has ONLY one attribute: title_pattern = %Systems%'
+\echo '    title_user has NO department, NO status, NO clearance.'
+\echo '    Access is granted purely through the LIKE rule on course.title.'
 -- ─────────────────────────────────────────────────────────────
 RESET ROLE;
 
--- Set a pattern attribute on cs_user
-SELECT abac_set_user_attribute('cs_user', 'dept_pattern', 'Comp%');
+\echo '    Admin sees all courses (no RLS):'
+SELECT COUNT(*) AS total_courses FROM course;
 
--- Create a LIKE-based rule on the course table
-SELECT abac_add_rule('course_dept_like', 'course', 'LIKE rule: dept_name matches user dept_pattern');
-SELECT abac_add_condition('course_dept_like', 'dept_name', 'dept_pattern', 'LIKE');
+\echo '    title_user sees ONLY courses where title LIKE %Systems%:'
+SET ROLE title_user;
+SELECT course_id, title, dept_name FROM course ORDER BY title;
 
--- Enable RLS on department (uses existing abac_course_select policy)
-\echo '    cs_user queries courses — only dept_name matching Comp% visible via LIKE rule'
-SET ROLE cs_user;
-SELECT DISTINCT dept_name FROM course ORDER BY dept_name;
-
--- Clean up: remove the demo rule so it does not interfere with existing setup
 RESET ROLE;
-SELECT abac_disable_rule('course_dept_like');
-\echo '    LIKE demo rule disabled. Setup rules restored.'
+\echo '    Confirmed: access granted purely by LIKE on course.title, not by any equality rule.'
 
 
 
