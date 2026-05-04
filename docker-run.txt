@@ -31,5 +31,5 @@ pgbench -U postgres -d university_abac -f benchmark/abac_enabled.sql -T 30
 pgbench -U postgres -d university_abac -f benchmark/policy_complexity.sql -T 30
 
 # Clean restart if needed:
-# docker stop pg-abac-final
-# docker rm pg-abac-final
+# docker stop pg-abac
+# docker rm pg-abac

@@ -1,6 +1,6 @@
 # Benchmark and Evaluation Plan
 
-The professor asked for systematic evaluation. We evaluate both correctness and performance.
+We evaluate both correctness and performance.
 
 ## Experiment 1: Baseline vs ABAC Overhead
 
@@ -20,7 +20,7 @@ Metrics: TPS, average latency, and percent overhead.
 
 Run:
 ```bash
-psql -U postgres -d university_abac -f demo/demo_script.sql
+psql -U postgres -d university_abac -f demo/demo.sql
 ```
 
 Correctness criterion: the same query returns different row sets for different users based on attributes.
