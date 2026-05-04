@@ -42,11 +42,14 @@ SELECT abac_set_user_attribute('registrar', 'department', 'Registrar');
 SELECT abac_set_user_attribute('registrar', 'status', 'active');
 SELECT abac_set_user_attribute('registrar', 'clearance', 'high');
 SELECT abac_set_user_attribute('registrar', 'salary_threshold', '70000');
+SELECT abac_set_user_attribute('registrar', 'classroom_title_pattern', '%Ga%');
 
 SELECT abac_set_user_attribute('inactive_user', 'department', 'Comp. Sci.');
 SELECT abac_set_user_attribute('inactive_user', 'status', 'inactive');
 SELECT abac_set_user_attribute('inactive_user', 'clearance', 'high');
 SELECT abac_set_user_attribute('inactive_user', 'salary_threshold', '70000');
+
+
 
 /* Reset rules so this script can be rerun. */
 DELETE FROM abac_rules;
@@ -76,7 +79,11 @@ SELECT abac_add_condition('course_high_clearance_active', NULL, 'status', '=', '
 
 SELECT abac_add_rule('course_credit', 'course', 'Courses visible when row dept matches user department and credit is >= 3');
 SELECT abac_add_condition('course_credit', 'dept_name', 'department', '=', NULL, 'text', 1);
-SELECT abac_add_condition('course_credit', 'credits', 'credits', '>=', NULL, 'text', 2);
+SELECT abac_add_condition('course_credit', 'credits', 'credits', '>=', NULL, 'numeric', 2);
+
+/* Classroom rules */
+SELECT abac_add_rule('classroom_title_pattern', 'classroom', 'Classroom title must match the user classroom_title_pattern');
+SELECT abac_add_condition('classroom_title_pattern', 'building', 'classroom_title_pattern', 'LIKE', NULL, 'text', 1);
 
 /*
  * INSTRUCTOR rules:
@@ -95,6 +102,7 @@ SELECT abac_add_condition('instructor_salary_above_threshold_active', NULL, 'sta
 ALTER TABLE student ENABLE ROW LEVEL SECURITY;
 ALTER TABLE course ENABLE ROW LEVEL SECURITY;
 ALTER TABLE instructor ENABLE ROW LEVEL SECURITY;
+ALTER TABLE classroom ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS abac_student_select ON student;
 CREATE POLICY abac_student_select
@@ -118,6 +126,19 @@ ON instructor
 FOR SELECT
 USING (
     abac_check_access('instructor', jsonb_build_object('dept_name', dept_name, 'salary', salary))
+);
+
+DROP POLICY IF EXISTS abac_classroom_select ON classroom;
+CREATE POLICY abac_classroom_select
+ON classroom
+FOR SELECT
+USING (
+    abac_check_access(
+        'classroom',
+        jsonb_build_object(
+            'building', building
+        )
+    )
 );
 
 \echo 'ABAC setup complete: metadata rules loaded and RLS policies enabled.'

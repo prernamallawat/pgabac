@@ -76,7 +76,13 @@ RESET ROLE;
 SET ROLE cs_user;
 SELECT * from course;
 
+\echo 'LIKE operator on building'
+RESET ROLE;
+select * from classroom where building like '%Ga%';
 
+RESET ROLE;
+SET ROLE registrar;
+SELECT * from classroom;
 
 
 

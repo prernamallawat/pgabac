@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS abac_rule_conditions (
     constant_value text,
     value_type text NOT NULL DEFAULT 'text',
     created_at timestamptz NOT NULL DEFAULT now(),
-    CHECK (operator IN ('=', '==', '!=', '<>', '>', '<', '>=', '<=')),
+    CHECK (upper(operator) IN ('=', '==', '!=', '<>', '>', '<', '>=', '<=', 'LIKE', 'NOT LIKE')),
     CHECK (value_type IN ('text', 'numeric')),
     CHECK (
         (column_name IS NOT NULL AND constant_value IS NULL)
@@ -289,6 +289,13 @@ BEGIN
     IF p_operator = '<' THEN RETURN p_left_value < p_right_value; END IF;
     IF p_operator = '>=' THEN RETURN p_left_value >= p_right_value; END IF;
     IF p_operator = '<=' THEN RETURN p_left_value <= p_right_value; END IF;
+    IF upper(p_operator) = 'LIKE' THEN
+        RETURN p_left_value LIKE p_right_value;
+    END IF;
+
+    IF upper(p_operator) = 'NOT LIKE' THEN
+        RETURN p_left_value NOT LIKE p_right_value;
+    END IF;
     RAISE EXCEPTION 'Unsupported ABAC text operator: %', p_operator;
 END;
 $$;
@@ -378,4 +385,4 @@ AS $$
 $$;
 
 COMMENT ON FUNCTION abac_check_access(text, jsonb) IS
-'Generic ABAC RLS predicate. Conditions in one rule are AND-ed. Multiple rules per table are OR-ed. Supports text and numeric comparisons.';
+'Generic ABAC RLS predicate. Conditions in one rule are AND-ed. Multiple rules per table are OR-ed. Supports equality, inequality, ordered numeric comparisons, LIKE, and NOT LIKE.';
