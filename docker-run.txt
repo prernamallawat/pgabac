@@ -6,19 +6,17 @@
 # ═══════════════════════════════════════════════════════
 # This builds the Docker image, compiles the extension,
 # and loads the full University database automatically.
-# It will take 1-2 minutes the first time.
+# The -d flag runs it in the background so your terminal stays free.
 
-docker compose up --build
+docker compose up --build -d
 
-# Wait until you see this line in the logs:
-#   database system is ready to accept connections
-# Then open a NEW terminal window and continue to Step 2.
+# Wait ~60 seconds then check it is ready:
+docker logs pg-abac | tail -5
+# You should see: database system is ready to accept connections
 
 # ═══════════════════════════════════════════════════════
 # STEP 2 — Connect to the database
 # ═══════════════════════════════════════════════════════
-# Run this in a new terminal window while docker compose
-# is still running in the background.
 
 docker exec -it pg-abac psql -U postgres -d university_abac
 
@@ -51,8 +49,8 @@ pgbench -U postgres -d university_abac -f benchmark/policy_complexity.sql -T 30
 docker compose down
 
 # Start again without rebuilding (data is preserved)
-docker compose up
+docker compose up -d
 
 # Full clean reset — deletes all data and rebuilds from scratch
 docker compose down -v
-docker compose up --build
+docker compose up --build -d

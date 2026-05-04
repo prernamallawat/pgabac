@@ -76,6 +76,48 @@ RESET ROLE;
 SET ROLE cs_user;
 SELECT * from course;
 
+-- ─────────────────────────────────────────────────────────────
+\echo '11) LIKE operator — direct predicate tests'
+-- ─────────────────────────────────────────────────────────────
+RESET ROLE;
+
+\echo '    abac_text_like: Comp. Sci. matches Comp% -> true'
+SELECT abac_text_like('Comp. Sci.', 'Comp%') AS like_match;
+
+\echo '    abac_text_like: Biology does not match Comp% -> false'
+SELECT abac_text_like('Biology', 'Comp%') AS no_match;
+
+\echo '    abac_text_not_like: Biology does not match Comp% -> true'
+SELECT abac_text_not_like('Biology', 'Comp%') AS not_like_match;
+
+\echo '    abac_compare_values with LIKE through the policy engine'
+SELECT abac_compare_values('Comp. Sci.', 'LIKE', 'Comp%', 'text') AS engine_like;
+SELECT abac_compare_values('Biology',    'NOT LIKE', 'Comp%', 'text') AS engine_not_like;
+
+-- ─────────────────────────────────────────────────────────────
+\echo '12) LIKE operator — live RLS rule using dept_name pattern'
+\echo '    Give cs_user a dept_pattern attribute: Comp%'
+\echo '    Add a LIKE rule on the department table and verify filtering.'
+-- ─────────────────────────────────────────────────────────────
+RESET ROLE;
+
+-- Set a pattern attribute on cs_user
+SELECT abac_set_user_attribute('cs_user', 'dept_pattern', 'Comp%');
+
+-- Create a LIKE-based rule on the course table
+SELECT abac_add_rule('course_dept_like', 'course', 'LIKE rule: dept_name matches user dept_pattern');
+SELECT abac_add_condition('course_dept_like', 'dept_name', 'dept_pattern', 'LIKE');
+
+-- Enable RLS on department (uses existing abac_course_select policy)
+\echo '    cs_user queries courses — only dept_name matching Comp% visible via LIKE rule'
+SET ROLE cs_user;
+SELECT DISTINCT dept_name FROM course ORDER BY dept_name;
+
+-- Clean up: remove the demo rule so it does not interfere with existing setup
+RESET ROLE;
+SELECT abac_disable_rule('course_dept_like');
+\echo '    LIKE demo rule disabled. Setup rules restored.'
+
 
 
 
