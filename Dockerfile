@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
 COPY . /pg_abac
 
 RUN cd /pg_abac && \
+    make clean && \
     make PG_CONFIG=/usr/lib/postgresql/15/bin/pg_config && \
     make install PG_CONFIG=/usr/lib/postgresql/15/bin/pg_config
 

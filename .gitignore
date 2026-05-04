@@ -1,0 +1,3 @@
+# PostgreSQL extension build artifacts
+*.o
+*.so
