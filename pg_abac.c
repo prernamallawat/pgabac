@@ -15,6 +15,8 @@ PG_MODULE_MAGIC;
 PG_FUNCTION_INFO_V1(abac_text_equals);
 PG_FUNCTION_INFO_V1(abac_text_not_equals);
 PG_FUNCTION_INFO_V1(abac_text_compare);
+PG_FUNCTION_INFO_V1(abac_text_like);
+PG_FUNCTION_INFO_V1(abac_text_not_like);
 
 /*
  * abac_text_equals(left text, right text) returns boolean
@@ -86,8 +88,30 @@ abac_text_compare(PG_FUNCTION_ARGS)
     operator_arg = PG_GETARG_TEXT_PP(1);
     right_arg = PG_GETARG_TEXT_PP(2);
 
-    left = text_to_cstring(left_arg);
     operator_text = text_to_cstring(operator_arg);
+
+    /* Handle LIKE/NOT LIKE before cstring conversion — needs text* pointers. */
+    if (strcmp(operator_text, "LIKE") == 0)
+        PG_RETURN_BOOL(
+            DatumGetBool(DirectFunctionCall2Coll(
+                textlike,
+                PG_GET_COLLATION(),
+                PointerGetDatum(left_arg),
+                PointerGetDatum(right_arg)
+            ))
+        );
+
+    if (strcmp(operator_text, "NOT LIKE") == 0)
+        PG_RETURN_BOOL(
+            DatumGetBool(DirectFunctionCall2Coll(
+                textnlike,
+                PG_GET_COLLATION(),
+                PointerGetDatum(left_arg),
+                PointerGetDatum(right_arg)
+            ))
+        );
+
+    left = text_to_cstring(left_arg);
     right = text_to_cstring(right_arg);
 
     cmp = strcmp(left, right);
@@ -113,7 +137,59 @@ abac_text_compare(PG_FUNCTION_ARGS)
     ereport(ERROR,
             (errcode(ERRCODE_INVALID_PARAMETER_VALUE),
              errmsg("unsupported ABAC operator: %s", operator_text),
-             errhint("Supported C text operators are =, ==, !=, <>, >, <, >=, and <=.")));
+             errhint("Supported C text operators are =, ==, !=, <>, >, <, >=, <=, LIKE, and NOT LIKE.")));
 
     PG_RETURN_BOOL(false);
+}
+
+/*
+ * abac_text_like(str text, pattern text) returns boolean
+ * Returns true when str matches the SQL LIKE pattern.
+ */
+Datum
+abac_text_like(PG_FUNCTION_ARGS)
+{
+    text *str;
+    text *pattern;
+
+    if (PG_ARGISNULL(0) || PG_ARGISNULL(1))
+        PG_RETURN_BOOL(false);
+
+    str     = PG_GETARG_TEXT_PP(0);
+    pattern = PG_GETARG_TEXT_PP(1);
+
+    PG_RETURN_BOOL(
+        DatumGetBool(DirectFunctionCall2Coll(
+            textlike,
+            PG_GET_COLLATION(),
+            PointerGetDatum(str),
+            PointerGetDatum(pattern)
+        ))
+    );
+}
+
+/*
+ * abac_text_not_like(str text, pattern text) returns boolean
+ * Returns true when str does NOT match the SQL LIKE pattern.
+ */
+Datum
+abac_text_not_like(PG_FUNCTION_ARGS)
+{
+    text *str;
+    text *pattern;
+
+    if (PG_ARGISNULL(0) || PG_ARGISNULL(1))
+        PG_RETURN_BOOL(false);
+
+    str     = PG_GETARG_TEXT_PP(0);
+    pattern = PG_GETARG_TEXT_PP(1);
+
+    PG_RETURN_BOOL(
+        DatumGetBool(DirectFunctionCall2Coll(
+            textnlike,
+            PG_GET_COLLATION(),
+            PointerGetDatum(str),
+            PointerGetDatum(pattern)
+        ))
+    );
 }

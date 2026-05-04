@@ -1,35 +1,61 @@
-# Docker run instructions for final ABAC project
+# Docker run instructions for pg_abac ABAC extension
+# All commands are run from the pgabac directory.
 
-# 1. From the unzipped project folder on your Mac:
-docker run --name pg-abac -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=university_abac -p 5434:5432 -v "$PWD":/pg_abac -d postgres:15
+# ─────────────────────────────────────────────
+# RECOMMENDED: Docker Compose (one command)
+# ─────────────────────────────────────────────
 
-# 2. Enter container:
+# First time: build image, compile extension, load full project automatically
+docker compose up --build
+
+# Subsequent starts (no rebuild needed)
+docker compose up
+
+# Stop containers
+docker compose down
+
+# Clean restart (wipes database volume and rebuilds from scratch)
+docker compose down -v
+docker compose up --build
+
+# Connect to the running database
+docker exec -it pg-abac psql -U postgres -d university_abac
+
+# ─────────────────────────────────────────────
+# MANUAL: Step-by-step (if not using Compose)
+# ─────────────────────────────────────────────
+
+# 1. Start container (from DB_FInal directory)
+docker run --name pg-abac -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=university_abac -p 5434:5432 -v "${PWD}/pgabac:/pg_abac" -d postgres:15
+
+# 2. Enter container
 docker exec -it pg-abac bash
 
-# 3. Install build tools inside container:
+# 3. Install build tools inside container
 apt update
 apt install -y build-essential postgresql-server-dev-15
 
-# 4. Build and install extension:
+# 4. Build and install extension
 cd /pg_abac
 make clean
 make PG_CONFIG=/usr/lib/postgresql/15/bin/pg_config
 make install PG_CONFIG=/usr/lib/postgresql/15/bin/pg_config
 
-# 5. Load complete project:
+# 5. Load complete project
 psql -U postgres -d university_abac -f load_initial_project.sql
 
-# 6. Run demo:
-psql -U postgres -d university_abac -f demo/demo_script.sql
+# ─────────────────────────────────────────────
+# DEMO / VERIFICATION / BENCHMARKS
+# ─────────────────────────────────────────────
+# Run these inside the container after loading the project.
 
-# 7. Run verification:
+# Run demo
+psql -U postgres -d university_abac -f demo/demo.sql
+
+# Run verification
 psql -U postgres -d university_abac -f abac/verify_abac.sql
 
-# 8. Run benchmarks:
+# Run benchmarks
 pgbench -U postgres -d university_abac -f benchmark/baseline.sql -T 30
 pgbench -U postgres -d university_abac -f benchmark/abac_enabled.sql -T 30
 pgbench -U postgres -d university_abac -f benchmark/policy_complexity.sql -T 30
-
-# Clean restart if needed:
-# docker stop pg-abac
-# docker rm pg-abac

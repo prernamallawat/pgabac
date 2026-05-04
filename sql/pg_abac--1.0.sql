@@ -28,6 +28,18 @@ LANGUAGE C
 IMMUTABLE
 AS '$libdir/pg_abac', 'abac_text_compare';
 
+CREATE FUNCTION abac_text_like(str text, pattern text)
+RETURNS boolean
+LANGUAGE C
+IMMUTABLE
+AS '$libdir/pg_abac', 'abac_text_like';
+
+CREATE FUNCTION abac_text_not_like(str text, pattern text)
+RETURNS boolean
+LANGUAGE C
+IMMUTABLE
+AS '$libdir/pg_abac', 'abac_text_not_like';
+
 CREATE TABLE IF NOT EXISTS abac_user_attributes (
     username text NOT NULL,
     attribute_name text NOT NULL,
@@ -62,7 +74,7 @@ CREATE TABLE IF NOT EXISTS abac_rule_conditions (
     constant_value text,
     value_type text NOT NULL DEFAULT 'text',
     created_at timestamptz NOT NULL DEFAULT now(),
-    CHECK (operator IN ('=', '==', '!=', '<>', '>', '<', '>=', '<=')),
+    CHECK (operator IN ('=', '==', '!=', '<>', '>', '<', '>=', '<=', 'LIKE', 'NOT LIKE')),
     CHECK (value_type IN ('text', 'numeric')),
     CHECK (
         (column_name IS NOT NULL AND constant_value IS NULL)
@@ -285,10 +297,12 @@ BEGIN
 
     IF p_operator IN ('=', '==') THEN RETURN p_left_value = p_right_value; END IF;
     IF p_operator IN ('!=', '<>') THEN RETURN p_left_value <> p_right_value; END IF;
-    IF p_operator = '>' THEN RETURN p_left_value > p_right_value; END IF;
-    IF p_operator = '<' THEN RETURN p_left_value < p_right_value; END IF;
+    IF p_operator = '>'  THEN RETURN p_left_value >  p_right_value; END IF;
+    IF p_operator = '<'  THEN RETURN p_left_value <  p_right_value; END IF;
     IF p_operator = '>=' THEN RETURN p_left_value >= p_right_value; END IF;
     IF p_operator = '<=' THEN RETURN p_left_value <= p_right_value; END IF;
+    IF p_operator = 'LIKE'     THEN RETURN p_left_value LIKE     p_right_value; END IF;
+    IF p_operator = 'NOT LIKE' THEN RETURN p_left_value NOT LIKE p_right_value; END IF;
     RAISE EXCEPTION 'Unsupported ABAC text operator: %', p_operator;
 END;
 $$;
