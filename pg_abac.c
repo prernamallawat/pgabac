@@ -6,8 +6,7 @@
  * This file provides fast, SQL-callable predicate helpers used by the policy engine.
  */
 
-#include "postgres.h"
-#include "fmgr.h"
+#include "pg_abac.h"
 #include "utils/builtins.h"
 
 PG_MODULE_MAGIC;
