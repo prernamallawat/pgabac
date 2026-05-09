@@ -11,23 +11,23 @@ The benchmark compares a normal PostgreSQL table against an equivalent table pro
 
 The comparison uses two tables with identical data:
 
-| Table | Purpose |
-|---|---|
-| `bench_docs_baseline` | Baseline table without RLS |
-| `bench_docs_abac` | Same data, protected by RLS and `abac_check_access(...)` |
+| Table                 | Purpose |
+|-----------------------| ---------------------------------------------------------|
+| `bench_docs_baseline` | Baseline table without RLS                               |
+| `bench_docs_abac`     | Same data, protected by RLS and `abac_check_access(...)` |
 
 Both tables contain 100,000 synthetic rows with object attributes such as department, region, classification, lifecycle status, and amount.
 
 ## Files
 
-| File | Description |
-|---|---|
-| `01_setup.sql` | Creates benchmark roles, tables, data, indexes, user attributes, ABAC rules, and RLS policies |
-| `baseline_select.sql` | Baseline workload using explicit SQL predicates on the unprotected table |
-| `abac_select.sql` | ABAC workload executed as `bench_cs_user` on the RLS-protected table |
-| `abac_select_with_set_role.sql` | Convenience workload for running pgbench as a superuser or admin role |
-| `policy_complexity.sql` | ABAC workload for testing multiple rules and more complex policy evaluation |
-| `run_benchmark.sh` | Runs all benchmark scenarios and stores pgbench output files |
+| File                            | Description                                                                   |
+| --------------------------------|-------------------------------------------------------------------------------|
+| `01_setup.sql`                  | Creates benchmark roles, tables, data, indexes, user attributes, ABAC rules, and  RLS policies |
+| `baseline_select.sql`           | Baseline workload using explicit SQL predicates on the unprotected table      |
+| `abac_select.sql`               | ABAC workload executed as `bench_cs_user` on the RLS-protected table          |
+| `abac_select_with_set_role.sql` | Convenience workload for running pgbench as a superuser or admin role         |
+| `policy_complexity.sql`         | ABAC workload for testing multiple rules and more complex policy evaluation   |
+| `run_benchmark.sh`              | Runs all benchmark scenarios and stores pgbench output files                  |
 
 ## Benchmark Scenarios
 
@@ -192,11 +192,11 @@ The complex ABAC workload is expected to be slower than the simple ABAC workload
 
 After running the benchmark, record the observed results below.
 
-| Scenario |  TPS |  Average Latency | Notes  |
-| --------- | ------------: | ----------: | ------------ |
-| Baseline explicit filter | 14661.776280 | 0.682 ms | No RLS                              |
-| ABAC simple policy       | 4.884729 | 2047.196 ms | RLS with metadata-driven ABAC check |
-| ABAC complex policy      | 2.097811 | 4766.873 ms | Multiple ABAC rules and conditions  |
+| Scenario                 |  TPS         |  Average Latency  | Notes                               |
+| -------------------------| ------------ | ----------------- | ------------------------------------|
+| Baseline explicit filter | 14661.776280 | 0.682 ms          | No RLS                              |
+| ABAC simple policy       | 4.884729     | 2047.196 ms       | RLS with metadata-driven ABAC check |
+| ABAC complex policy      | 2.097811     | 4766.873 ms       | Multiple ABAC rules and conditions  |
 
 ## Example Analysis Format
 
@@ -218,10 +218,10 @@ Record the environment used for the benchmark.
 
 | Item               | Value        |
 | ------------------ | ------------ |
-| PostgreSQL version | 15.6 |
-| Benchmark duration | 60 s |
-| Number of clients  | 10 |
-| Number of jobs     | 4 |
+| PostgreSQL version | 15.6         |
+| Benchmark duration | 60 s         |
+| Number of clients  | 10           |
+| Number of jobs     | 4            |
 
 ## Notes and Assumptions
 
