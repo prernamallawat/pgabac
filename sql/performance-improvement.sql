@@ -16,7 +16,7 @@ ON instructor(salary);
 CREATE INDEX IF NOT EXISTS idx_course_credits
 ON course(credits);
 
-CREATE INDEX IF NOT EXISTS idx_abac_rules_table_enabled
+CREATE INDEX IF NOT EXISTS idx_abac_rules_table
 ON abac_rules(table_name);
 
 CREATE INDEX IF NOT EXISTS idx_abac_conditions_rule_order
