@@ -192,11 +192,11 @@ The complex ABAC workload is expected to be slower than the simple ABAC workload
 
 After running the benchmark, record the observed results below.
 
-| Scenario                 |                               TPS |                   Average Latency | Notes                               |
-| ------------------------ | --------------------------------: | --------------------------------: | ----------------------------------- |
-| Baseline explicit filter | *Fill in after running benchmark* | *Fill in after running benchmark* | No RLS                              |
-| ABAC simple policy       | *Fill in after running benchmark* | *Fill in after running benchmark* | RLS with metadata-driven ABAC check |
-| ABAC complex policy      | *Fill in after running benchmark* | *Fill in after running benchmark* | Multiple ABAC rules and conditions  |
+| Scenario |  TPS |  Average Latency | Notes  |
+| --------- | ------------: | ----------: | ------------ |
+| Baseline explicit filter | 14661.776280 | 0.682 ms | No RLS                              |
+| ABAC simple policy       | 4.884729 | 2047.196 ms | RLS with metadata-driven ABAC check |
+| ABAC complex policy      | 2.097811 | 4766.873 ms | Multiple ABAC rules and conditions  |
 
 ## Example Analysis Format
 
@@ -218,14 +218,10 @@ Record the environment used for the benchmark.
 
 | Item               | Value        |
 | ------------------ | ------------ |
-| PostgreSQL version | *Fill in*    |
-| Operating system   | *Fill in*    |
-| CPU                | *Fill in*    |
-| RAM                | *Fill in*    |
-| Dataset size       | 100,000 rows |
-| Benchmark duration | *Fill in*    |
-| Number of clients  | *Fill in*    |
-| Number of jobs     | *Fill in*    |
+| PostgreSQL version | 15.6 |
+| Benchmark duration | 60 s |
+| Number of clients  | 10 |
+| Number of jobs     | 4 |
 
 ## Notes and Assumptions
 

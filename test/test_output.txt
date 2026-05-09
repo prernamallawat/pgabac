@@ -1,0 +1,492 @@
+Pager usage is off.
+CREATE EXTENSION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+DO
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+DROP TABLE
+DELETE 6
+DELETE 25
+CREATE TABLE
+INSERT 0 6
+GRANT
+ALTER TABLE
+DROP POLICY
+CREATE POLICY
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+ assert_true 
+-------------
+ 
+(1 row)
+
+ assert_true 
+-------------
+ 
+(1 row)
+
+ assert_true 
+-------------
+ 
+(1 row)
+
+ assert_true 
+-------------
+ 
+(1 row)
+
+ assert_true 
+-------------
+ 
+(1 row)
+
+ assert_true 
+-------------
+ 
+(1 row)
+
+ assert_false 
+--------------
+ 
+(1 row)
+
+ assert_false 
+--------------
+ 
+(1 row)
+
+ clear_doc_rules 
+-----------------
+ 
+(1 row)
+
+SET
+RESET
+ assert_eq_bigint 
+------------------
+ 
+(1 row)
+
+ clear_doc_rules 
+-----------------
+ 
+(1 row)
+
+ create_dept_region_rule 
+-------------------------
+ 
+(1 row)
+
+SET
+RESET
+ assert_eq_bigint 
+------------------
+ 
+(1 row)
+
+SET
+RESET
+ assert_eq_bigint 
+------------------
+ 
+(1 row)
+
+SET
+RESET
+ assert_eq_bigint 
+------------------
+ 
+(1 row)
+
+SET
+RESET
+ assert_eq_bigint 
+------------------
+ 
+(1 row)
+
+ clear_doc_rules 
+-----------------
+ 
+(1 row)
+
+ create_dept_region_rule 
+-------------------------
+ 
+(1 row)
+
+ create_high_clearance_rule 
+----------------------------
+ 
+(1 row)
+
+SET
+RESET
+ assert_eq_bigint 
+------------------
+ 
+(1 row)
+
+SET
+RESET
+ assert_eq_bigint 
+------------------
+ 
+(1 row)
+
+ clear_doc_rules 
+-----------------
+ 
+(1 row)
+
+ create_amount_limit_rule 
+--------------------------
+ 
+(1 row)
+
+SET
+RESET
+ assert_eq_bigint 
+------------------
+ 
+(1 row)
+
+SET
+RESET
+ assert_eq_bigint 
+------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+SET
+RESET
+ assert_eq_bigint 
+------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+ clear_doc_rules 
+-----------------
+ 
+(1 row)
+
+ create_title_like_rule 
+------------------------
+ 
+(1 row)
+
+SET
+RESET
+ assert_eq_bigint 
+------------------
+ 
+(1 row)
+
+SET
+RESET
+ assert_eq_bigint 
+------------------
+ 
+(1 row)
+
+ clear_doc_rules 
+-----------------
+ 
+(1 row)
+
+ create_missing_json_rule 
+--------------------------
+ 
+(1 row)
+
+SET
+RESET
+ assert_eq_bigint 
+------------------
+ 
+(1 row)
+
+ clear_doc_rules 
+-----------------
+ 
+(1 row)
+
+ create_dept_region_rule 
+-------------------------
+ 
+(1 row)
+
+DO
+ clear_doc_rules 
+-----------------
+ 
+(1 row)
+
+ abac_add_policy 
+-----------------
+              17
+(1 row)
+
+SET
+RESET
+ assert_eq_bigint 
+------------------
+ 
+(1 row)
+
+ assert_true 
+-------------
+ 
+(1 row)
+
+ assert_true 
+-------------
+ 
+(1 row)
+
+ assert_false 
+--------------
+ 
+(1 row)
+
+ assert_false 
+--------------
+ 
+(1 row)
+
+ assert_false 
+--------------
+ 
+(1 row)
+
+ assert_false 
+--------------
+ 
+(1 row)
+
+ clear_doc_rules 
+-----------------
+ 
+(1 row)
+
+ create_dept_region_rule 
+-------------------------
+ 
+(1 row)
+
+SET
+RESET
+ assert_eq_bigint 
+------------------
+ 
+(1 row)
+
+DELETE 1
+SET
+RESET
+ assert_eq_bigint 
+------------------
+ 
+(1 row)
+
+ clear_doc_rules 
+-----------------
+ 
+(1 row)
+
+ create_dept_region_rule 
+-------------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+SET
+RESET
+ assert_eq_bigint 
+------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+SET
+RESET
+ assert_eq_bigint 
+------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+ assert_true 
+-------------
+ 
+(1 row)
+
+SET
+RESET
+ assert_eq_bigint 
+------------------
+ 
+(1 row)
+
+ abac_set_user_attribute 
+-------------------------
+ 
+(1 row)
+
+All ABAC tests passed.

@@ -759,28 +759,21 @@ The ABAC function then evaluates metadata rules and user attributes to determine
 
 ## Benchmark Results
 
-Fill in this table after running the benchmark.
 
-| Scenario                 |       TPS | Average Latency | Notes                                  |
-| ------------------------ | --------: | --------------: | -------------------------------------- |
-| Baseline explicit filter | *Fill in* |       *Fill in* | No RLS                                 |
-| ABAC simple policy       | *Fill in* |       *Fill in* | RLS with metadata-driven policy check  |
-| ABAC complex policy      | *Fill in* |       *Fill in* | Multiple rules and multiple conditions |
+| Scenario |  TPS |  Average Latency | Notes  |
+| --------- | ------------: | ----------: | ------------ |
+| Baseline explicit filter | 14661.776280 | 0.682 ms | No RLS                              |
+| ABAC simple policy       | 4.884729 | 2047.196 ms | RLS with metadata-driven ABAC check |
+| ABAC complex policy      | 2.097811 | 4766.873 ms | Multiple ABAC rules and conditions  |
 
 ## Benchmark Environment
 
-Fill in the environment used for the final benchmark run.
-
-| Item               | Value        |
+| Item               | Value        |
 | ------------------ | ------------ |
-| PostgreSQL version | *Fill in*    |
-| Operating system   | *Fill in*    |
-| CPU                | *Fill in*    |
-| RAM                | *Fill in*    |
-| Dataset size       | 100,000 rows |
-| Benchmark duration | *Fill in*    |
-| Number of clients  | *Fill in*    |
-| Number of jobs     | *Fill in*    |
+| PostgreSQL version | 15.6 |
+| Benchmark duration | 60 s |
+| Number of clients  | 10 |
+| Number of jobs     | 4 |
 
 ## Benchmark Analysis
 

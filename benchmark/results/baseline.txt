@@ -1,0 +1,13 @@
+pgbench (15.17 (Debian 15.17-1.pgdg13+1))
+transaction type: benchmark/baseline_select.sql
+scaling factor: 1
+query mode: prepared
+number of clients: 10
+number of threads: 4
+maximum number of tries: 1
+duration: 60 s
+number of transactions actually processed: 879649
+number of failed transactions: 0 (0.000%)
+latency average = 0.682 ms
+initial connection time = 7.532 ms
+tps = 14661.776280 (without initial connection time)

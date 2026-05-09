@@ -1,0 +1,13 @@
+pgbench (15.17 (Debian 15.17-1.pgdg13+1))
+transaction type: benchmark/abac_select.sql
+scaling factor: 1
+query mode: prepared
+number of clients: 10
+number of threads: 4
+maximum number of tries: 1
+duration: 60 s
+number of transactions actually processed: 300
+number of failed transactions: 0 (0.000%)
+latency average = 2047.196 ms
+initial connection time = 3.562 ms
+tps = 4.884729 (without initial connection time)
