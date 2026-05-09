@@ -1,35 +1,39 @@
-# Benchmark and Evaluation Plan
+# pg_abac Benchmark Methodology
 
-We evaluate both correctness and performance.
+This folder contains a `pgbench`-based performance evaluation for the PostgreSQL ABAC/RLS policy engine.
 
-## Experiment 1: Baseline vs ABAC Overhead
+## Goal
 
-Baseline:
-```bash
-pgbench -U postgres -d university_abac -f benchmark/baseline.sql -T 30
-```
+The benchmark measures the overhead of enforcing metadata-driven ABAC policies through PostgreSQL Row-Level Security.
 
-ABAC:
-```bash
-pgbench -U postgres -d university_abac -f benchmark/abac_enabled.sql -T 30
-```
+The comparison uses two tables with identical data:
 
-Metrics: TPS, average latency, and percent overhead.
+| Table | Purpose |
+|---|---|
+| `bench_docs_baseline` | Baseline table without RLS |
+| `bench_docs_abac` | Same data, protected by RLS and `abac_check_access(...)` |
 
-## Experiment 2: Correctness
+Both tables contain 100,000 synthetic rows with object attributes such as department, region, classification, lifecycle, and amount.
 
-Run:
-```bash
-psql -U postgres -d university_abac -f demo/demo.sql
-```
+## Files
 
-Correctness criterion: the same query returns different row sets for different users based on attributes.
+| File | Description |
+|---|---|
+| `01_setup.sql` | Creates benchmark roles, tables, data, indexes, user attributes, ABAC rules, and RLS policy |
+| `baseline_select.sql` | Baseline query using explicit SQL predicates |
+| `abac_select.sql` | ABAC query executed as `bench_cs_user` |
+| `abac_select_with_set_role.sql` | Convenience workload if running pgbench as `postgres` |
+| `policy_complexity.sql` | ABAC query with multiple enabled policy rules |
+| `run_benchmark.sh` | Runs all benchmark scenarios and stores output |
 
-## Experiment 3: Policy Complexity
+## Benchmark Scenarios
 
-Run:
-```bash
-pgbench -U postgres -d university_abac -f benchmark/policy_complexity.sql -T 30
-```
+### 1. Baseline
 
-This tests a table with multiple rules, AND conditions, and numeric comparison.
+The baseline query uses a normal table without RLS:
+
+```sql
+SELECT COUNT(*)
+FROM bench_docs_baseline
+WHERE dept_name = 'Comp. Sci.'
+  AND region = 'US';
