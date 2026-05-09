@@ -23,7 +23,7 @@ Both tables contain 100,000 synthetic rows with object attributes such as depart
 | `baseline_select.sql` | Baseline query using explicit SQL predicates |
 | `abac_select.sql` | ABAC query executed as `bench_cs_user` |
 | `abac_select_with_set_role.sql` | Convenience workload if running pgbench as `postgres` |
-| `policy_complexity.sql` | ABAC query with multiple enabled policy rules |
+| `policy_complexity.sql` | ABAC query with multiple policy rules |
 | `run_benchmark.sh` | Runs all benchmark scenarios and stores output |
 
 ## Benchmark Scenarios

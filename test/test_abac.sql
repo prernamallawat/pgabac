@@ -202,172 +202,186 @@ SELECT abac_set_user_attribute('abac_dana', 'spend_limit', '5000');
 SELECT abac_set_user_attribute('abac_erin', 'department', 'CS');
 SELECT abac_set_user_attribute('abac_erin', 'status', 'active');
 
+
 /*
  * ABAC rules for fixture table
-*/
-
-/*
- * Rule 1:
- * row.dept = user.department
- * AND row.region = user.region
- * AND user.status = 'active'
+ *
+ * Since rule activation is not stored in abac_rules, this test isolates
+ * each scenario by deleting the current fixture-table rules and recreating
+ * only the rule or rules needed for that scenario.
  */
-SELECT abac_add_rule(
-    't_doc_dept_region_active',
-    'abac_test_documents',
-    'row.dept = user.department AND row.region = user.region AND user.status = active'
-);
+CREATE OR REPLACE FUNCTION pg_temp.clear_doc_rules()
+RETURNS void
+LANGUAGE sql
+AS $$
+    DELETE FROM abac_rules
+    WHERE table_name = 'abac_test_documents';
+$$;
 
-SELECT abac_add_condition(
-    't_doc_dept_region_active',
-    'dept',
-    'department',
-    '=',
-    NULL,
-    'text',
-    1
-);
+CREATE OR REPLACE FUNCTION pg_temp.create_dept_region_rule()
+RETURNS void
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    PERFORM abac_add_rule(
+        't_doc_dept_region_active',
+        'abac_test_documents',
+        'row.dept = user.department AND row.region = user.region AND user.status = active'
+    );
 
-SELECT abac_add_condition(
-    't_doc_dept_region_active',
-    'region',
-    'region',
-    '=',
-    NULL,
-    'text',
-    2
-);
+    PERFORM abac_add_condition(
+        't_doc_dept_region_active',
+        'dept',
+        'department',
+        '=',
+        NULL,
+        'text',
+        1
+    );
 
-SELECT abac_add_condition(
-    't_doc_dept_region_active',
-    NULL,
-    'status',
-    '=',
-    'active',
-    'text',
-    3
-);
+    PERFORM abac_add_condition(
+        't_doc_dept_region_active',
+        'region',
+        'region',
+        '=',
+        NULL,
+        'text',
+        2
+    );
 
-/*
- * Rule 2:
- * user.clearance = 'high'
- * AND user.status = 'active'
- */
-SELECT abac_add_rule(
-    't_doc_high_clearance_active',
-    'abac_test_documents',
-    'user.clearance = high AND user.status = active'
-);
+    PERFORM abac_add_condition(
+        't_doc_dept_region_active',
+        NULL,
+        'status',
+        '=',
+        'active',
+        'text',
+        3
+    );
+END;
+$$;
 
-SELECT abac_add_condition(
-    't_doc_high_clearance_active',
-    NULL,
-    'clearance',
-    '=',
-    'high',
-    'text',
-    1
-);
+CREATE OR REPLACE FUNCTION pg_temp.create_high_clearance_rule()
+RETURNS void
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    PERFORM abac_add_rule(
+        't_doc_high_clearance_active',
+        'abac_test_documents',
+        'user.clearance = high AND user.status = active'
+    );
 
-SELECT abac_add_condition(
-    't_doc_high_clearance_active',
-    NULL,
-    'status',
-    '=',
-    'active',
-    'text',
-    2
-);
+    PERFORM abac_add_condition(
+        't_doc_high_clearance_active',
+        NULL,
+        'clearance',
+        '=',
+        'high',
+        'text',
+        1
+    );
 
-/*
- * Rule 3:
- * row.amount <= user.spend_limit
- * AND user.status = 'active'
- */
-SELECT abac_add_rule(
-    't_doc_amount_under_limit_active',
-    'abac_test_documents',
-    'row.amount <= user.spend_limit AND user.status = active'
-);
+    PERFORM abac_add_condition(
+        't_doc_high_clearance_active',
+        NULL,
+        'status',
+        '=',
+        'active',
+        'text',
+        2
+    );
+END;
+$$;
 
-SELECT abac_add_condition(
-    't_doc_amount_under_limit_active',
-    'amount',
-    'spend_limit',
-    '<=',
-    NULL,
-    'numeric',
-    1
-);
+CREATE OR REPLACE FUNCTION pg_temp.create_amount_limit_rule()
+RETURNS void
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    PERFORM abac_add_rule(
+        't_doc_amount_under_limit_active',
+        'abac_test_documents',
+        'row.amount <= user.spend_limit AND user.status = active'
+    );
 
-SELECT abac_add_condition(
-    't_doc_amount_under_limit_active',
-    NULL,
-    'status',
-    '=',
-    'active',
-    'text',
-    2
-);
+    PERFORM abac_add_condition(
+        't_doc_amount_under_limit_active',
+        'amount',
+        'spend_limit',
+        '<=',
+        NULL,
+        'numeric',
+        1
+    );
 
-/*
- * Rule 4:
- * row.title LIKE user.title_pattern
- * AND user.status = 'active'
- */
-SELECT abac_add_rule(
-    't_doc_title_like_active',
-    'abac_test_documents',
-    'row.title LIKE user.title_pattern AND user.status = active'
-);
+    PERFORM abac_add_condition(
+        't_doc_amount_under_limit_active',
+        NULL,
+        'status',
+        '=',
+        'active',
+        'text',
+        2
+    );
+END;
+$$;
 
-SELECT abac_add_condition(
-    't_doc_title_like_active',
-    'title',
-    'title_pattern',
-    'LIKE',
-    NULL,
-    'text',
-    1
-);
+CREATE OR REPLACE FUNCTION pg_temp.create_title_like_rule()
+RETURNS void
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    PERFORM abac_add_rule(
+        't_doc_title_like_active',
+        'abac_test_documents',
+        'row.title LIKE user.title_pattern AND user.status = active'
+    );
 
-SELECT abac_add_condition(
-    't_doc_title_like_active',
-    NULL,
-    'status',
-    '=',
-    'active',
-    'text',
-    2
-);
+    PERFORM abac_add_condition(
+        't_doc_title_like_active',
+        'title',
+        'title_pattern',
+        'LIKE',
+        NULL,
+        'text',
+        1
+    );
 
-/*
- * Rule 5:
- * Intentionally references a row attribute that is not passed into
- * jsonb_build_object inside the RLS policy.
- */
-SELECT abac_add_rule(
-    't_doc_missing_json_attribute',
-    'abac_test_documents',
-    'references a row attribute not supplied in the RLS JSON object'
-);
+    PERFORM abac_add_condition(
+        't_doc_title_like_active',
+        NULL,
+        'status',
+        '=',
+        'active',
+        'text',
+        2
+    );
+END;
+$$;
 
-SELECT abac_add_condition(
-    't_doc_missing_json_attribute',
-    'not_in_policy_json',
-    'department',
-    '=',
-    NULL,
-    'text',
-    1
-);
+CREATE OR REPLACE FUNCTION pg_temp.create_missing_json_rule()
+RETURNS void
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    PERFORM abac_add_rule(
+        't_doc_missing_json_attribute',
+        'abac_test_documents',
+        'references a row attribute not supplied in the RLS JSON object'
+    );
 
-/*
- * Disable all rules before each phase, then enable only the rules being tested.
- */
-SELECT abac_disable_rule(rule_name)
-FROM abac_rules
-WHERE table_name = 'abac_test_documents';
+    PERFORM abac_add_condition(
+        't_doc_missing_json_attribute',
+        'not_in_policy_json',
+        'department',
+        '=',
+        NULL,
+        'text',
+        1
+    );
+END;
+$$;
 
 /*
  * Core function/operator tests
@@ -413,8 +427,10 @@ SELECT pg_temp.assert_false(
 );
 
 /* 
- * Test 1: fail closed when no enabled rule exists for an RLS-protected table
+ * Test 1: fail closed when no rule exists for an RLS-protected table
  */
+SELECT pg_temp.clear_doc_rules();
+
 SET ROLE abac_alice;
 SELECT COUNT(*) AS actual FROM abac_test_documents \gset
 RESET ROLE;
@@ -422,7 +438,7 @@ RESET ROLE;
 SELECT pg_temp.assert_eq_bigint(
     :actual,
     0,
-    'fail closed when all table rules are disabled'
+    'fail closed when no table rules exist'
 );
 
 /* 
@@ -434,7 +450,8 @@ SELECT pg_temp.assert_eq_bigint(
  * Carol is inactive, so she sees nothing.
  * Erin is missing region, so she sees nothing.
  */
-SELECT abac_enable_rule('t_doc_dept_region_active');
+SELECT pg_temp.clear_doc_rules();
+SELECT pg_temp.create_dept_region_rule();
 
 SET ROLE abac_alice;
 SELECT COUNT(*) AS actual FROM abac_test_documents \gset
@@ -483,7 +500,9 @@ SELECT pg_temp.assert_eq_bigint(
  * Dana has high clearance and active status, so she sees all rows.
  * Carol has high clearance but inactive status, so she still sees no rows.
  */
-SELECT abac_enable_rule('t_doc_high_clearance_active');
+SELECT pg_temp.clear_doc_rules();
+SELECT pg_temp.create_dept_region_rule();
+SELECT pg_temp.create_high_clearance_rule();
 
 SET ROLE abac_dana;
 SELECT COUNT(*) AS actual FROM abac_test_documents \gset
@@ -508,9 +527,8 @@ SELECT pg_temp.assert_eq_bigint(
 /*
  * Test 4: numeric comparison against user attribute
 */
-SELECT abac_disable_rule('t_doc_dept_region_active');
-SELECT abac_disable_rule('t_doc_high_clearance_active');
-SELECT abac_enable_rule('t_doc_amount_under_limit_active');
+SELECT pg_temp.clear_doc_rules();
+SELECT pg_temp.create_amount_limit_rule();
 
 SET ROLE abac_alice;
 SELECT COUNT(*) AS actual FROM abac_test_documents \gset
@@ -549,8 +567,8 @@ SELECT abac_set_user_attribute('abac_alice', 'spend_limit', '1000');
 /*
  * Test 5: LIKE pattern comparison against user attribute
 */
-SELECT abac_disable_rule('t_doc_amount_under_limit_active');
-SELECT abac_enable_rule('t_doc_title_like_active');
+SELECT pg_temp.clear_doc_rules();
+SELECT pg_temp.create_title_like_rule();
 
 SET ROLE abac_alice;
 SELECT COUNT(*) AS actual FROM abac_test_documents \gset
@@ -575,8 +593,8 @@ SELECT pg_temp.assert_eq_bigint(
 /*
  * Test 6: missing row attribute in jsonb payload fails closed
  */
-SELECT abac_disable_rule('t_doc_title_like_active');
-SELECT abac_enable_rule('t_doc_missing_json_attribute');
+SELECT pg_temp.clear_doc_rules();
+SELECT pg_temp.create_missing_json_rule();
 
 SET ROLE abac_alice;
 SELECT COUNT(*) AS actual FROM abac_test_documents \gset
@@ -591,6 +609,9 @@ SELECT pg_temp.assert_eq_bigint(
 /*
  * Test 7: policy metadata constraints reject invalid definitions
 */
+SELECT pg_temp.clear_doc_rules();
+SELECT pg_temp.create_dept_region_rule();
+
 DO $$
 BEGIN
     BEGIN
@@ -645,6 +666,8 @@ END $$;
 /*
  * Test 8: backward-compatible single-condition policy helper
 */
+SELECT pg_temp.clear_doc_rules();
+
 SELECT abac_add_policy(
     't_doc_legacy_single_condition_policy',
     'abac_test_documents',
@@ -653,12 +676,6 @@ SELECT abac_add_policy(
     '=',
     NULL
 );
-
-SELECT abac_disable_rule(rule_name)
-FROM abac_rules
-WHERE table_name = 'abac_test_documents';
-
-SELECT abac_enable_rule('t_doc_legacy_single_condition_policy');
 
 SET ROLE abac_alice;
 SELECT COUNT(*) AS actual FROM abac_test_documents \gset
@@ -707,12 +724,9 @@ SELECT pg_temp.assert_false(
     'unknown table with no rules denies access'
 );
 
-/* Disabled rule removes access */
-SELECT abac_disable_rule(rule_name)
-FROM abac_rules
-WHERE table_name = 'abac_test_documents';
-
-SELECT abac_enable_rule('t_doc_dept_region_active');
+/* Deleted rule removes access */
+SELECT pg_temp.clear_doc_rules();
+SELECT pg_temp.create_dept_region_rule();
 
 SET ROLE abac_alice;
 SELECT COUNT(*) AS actual FROM abac_test_documents \gset
@@ -721,10 +735,11 @@ RESET ROLE;
 SELECT pg_temp.assert_eq_bigint(
     :actual,
     2,
-    'Alice has access before disabling enabled rule'
+    'Alice has access before deleting the rule'
 );
 
-SELECT abac_disable_rule('t_doc_dept_region_active');
+DELETE FROM abac_rules
+WHERE rule_name = 't_doc_dept_region_active';
 
 SET ROLE abac_alice;
 SELECT COUNT(*) AS actual FROM abac_test_documents \gset
@@ -733,11 +748,12 @@ RESET ROLE;
 SELECT pg_temp.assert_eq_bigint(
     :actual,
     0,
-    'Alice loses access after disabling enabled rule'
+    'Alice loses access after deleting the rule'
 );
 
 /* Attribute update dynamically changes access */
-SELECT abac_enable_rule('t_doc_dept_region_active');
+SELECT pg_temp.clear_doc_rules();
+SELECT pg_temp.create_dept_region_rule();
 
 SELECT abac_set_user_attribute('abac_alice', 'region', 'EU');
 

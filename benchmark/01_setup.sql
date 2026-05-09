@@ -175,13 +175,6 @@ SELECT abac_set_user_attribute('bench_inactive_user', 'spend_limit', '999999');
  *   AND row.region = user.region
  *   AND user.status = 'active'
  *
- * Rule 2:
- *   user.clearance = 'high'
- *   AND user.status = 'active'
- *
- * Rule 3:
- *   row.amount <= user.spend_limit
- *   AND user.status = 'active'
  */
 SELECT abac_add_rule(
     'bench_docs_dept_region_active',
@@ -219,64 +212,10 @@ SELECT abac_add_condition(
     3
 );
 
-SELECT abac_add_rule(
-    'bench_docs_high_clearance_active',
-    'bench_docs_abac',
-    'Benchmark rule: active high-clearance users can see all rows'
-);
-
-SELECT abac_add_condition(
-    'bench_docs_high_clearance_active',
-    NULL,
-    'clearance',
-    '=',
-    'high',
-    'text',
-    1
-);
-
-SELECT abac_add_condition(
-    'bench_docs_high_clearance_active',
-    NULL,
-    'status',
-    '=',
-    'active',
-    'text',
-    2
-);
-
-SELECT abac_add_rule(
-    'bench_docs_amount_under_limit_active',
-    'bench_docs_abac',
-    'Benchmark rule: document amount must be under user spend limit and user must be active'
-);
-
-SELECT abac_add_condition(
-    'bench_docs_amount_under_limit_active',
-    'amount',
-    'spend_limit',
-    '<=',
-    NULL,
-    'numeric',
-    1
-);
-
-SELECT abac_add_condition(
-    'bench_docs_amount_under_limit_active',
-    NULL,
-    'status',
-    '=',
-    'active',
-    'text',
-    2
-);
-
 /*
- * For the simple ABAC benchmark, enable only the department/region/status rule.
- * The policy_complexity.sql workload enables the extra rules.
+ * The setup keeps only the simple rule active for the simple ABAC benchmark.
+ * run_benchmark.sh adds the extra rules later before the policy-complexity run.
  */
-SELECT abac_disable_rule('bench_docs_high_clearance_active');
-SELECT abac_disable_rule('bench_docs_amount_under_limit_active');
 
 ALTER TABLE bench_docs_abac ENABLE ROW LEVEL SECURITY;
 

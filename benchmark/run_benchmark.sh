@@ -35,12 +35,6 @@ pgbench \
 echo
 echo "Step 3: Running ABAC benchmark with simple department/region/status rule..."
 
-psql -U "$PGUSER_ADMIN" -d "$DB_NAME" <<SQL
-SELECT abac_enable_rule('bench_docs_dept_region_active');
-SELECT abac_disable_rule('bench_docs_high_clearance_active');
-SELECT abac_disable_rule('bench_docs_amount_under_limit_active');
-SQL
-
 pgbench \
   -U bench_cs_user \
   -d "$DB_NAME" \
@@ -53,12 +47,60 @@ pgbench \
   | tee "$RESULT_DIR/abac_simple.txt"
 
 echo
-echo "Step 4: Running ABAC benchmark with multiple enabled rules..."
+echo "Step 4: Running ABAC benchmark with multiple rules..."
 
 psql -U "$PGUSER_ADMIN" -d "$DB_NAME" <<SQL
-SELECT abac_enable_rule('bench_docs_dept_region_active');
-SELECT abac_enable_rule('bench_docs_high_clearance_active');
-SELECT abac_enable_rule('bench_docs_amount_under_limit_active');
+SELECT abac_add_rule(
+    'bench_docs_high_clearance_active',
+    'bench_docs_abac',
+    'Benchmark rule: active high-clearance users can see all rows'
+);
+
+SELECT abac_add_condition(
+    'bench_docs_high_clearance_active',
+    NULL,
+    'clearance',
+    '=',
+    'high',
+    'text',
+    1
+);
+
+SELECT abac_add_condition(
+    'bench_docs_high_clearance_active',
+    NULL,
+    'status',
+    '=',
+    'active',
+    'text',
+    2
+);
+
+SELECT abac_add_rule(
+    'bench_docs_amount_under_limit_active',
+    'bench_docs_abac',
+    'Benchmark rule: document amount must be under user spend limit and user must be active'
+);
+
+SELECT abac_add_condition(
+    'bench_docs_amount_under_limit_active',
+    'amount',
+    'spend_limit',
+    '<=',
+    NULL,
+    'numeric',
+    1
+);
+
+SELECT abac_add_condition(
+    'bench_docs_amount_under_limit_active',
+    NULL,
+    'status',
+    '=',
+    'active',
+    'text',
+    2
+);
 SQL
 
 pgbench \

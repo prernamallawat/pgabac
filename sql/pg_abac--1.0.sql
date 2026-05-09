@@ -7,7 +7,7 @@
  *   - abac_user_attributes stores subject/user attributes.
  *   - abac_rules stores one rule for one table.
  *   - abac_rule_conditions stores AND-ed conditions inside a rule.
- *   - Multiple enabled rules for the same table are evaluated with OR semantics.
+ *   - Multiple rules for the same table are evaluated with OR semantics.
  */
 
 CREATE FUNCTION abac_text_equals(left_value text, right_value text)
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS abac_rules (
 );
 
 COMMENT ON TABLE abac_rules IS
-'One ABAC rule for a table. Multiple enabled rules on the same table are OR-ed: access is granted if any rule is satisfied.';
+'One ABAC rule for a table. Multiple rules on the same table are OR-ed: access is granted if any rule is satisfied.';
 
 CREATE TABLE IF NOT EXISTS abac_rule_conditions (
     condition_id bigserial PRIMARY KEY,
@@ -213,19 +213,6 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION abac_disable_policy(p_policy_name text)
-RETURNS void
-LANGUAGE sql
-AS $$
-    SELECT abac_disable_rule(p_policy_name)
-$$;
-
-CREATE OR REPLACE FUNCTION abac_enable_policy(p_policy_name text)
-RETURNS void
-LANGUAGE sql
-AS $$
-    SELECT abac_enable_rule(p_policy_name)
-$$;
 
 CREATE OR REPLACE FUNCTION abac_compare_values(
     p_left_value text,
@@ -286,7 +273,7 @@ $$;
  *
  * Semantics:
  *   - Every condition within one rule must be true (AND).
- *   - At least one enabled rule for the table must be true (OR).
+ *   - At least one rule for the table must be true (OR).
  */
 CREATE OR REPLACE FUNCTION abac_check_access(
     p_table_name text,
@@ -302,7 +289,7 @@ DECLARE
     left_value text;
     right_value text;
     rule_passed boolean;
-    has_enabled_rule boolean := false;
+    has_rule boolean := false;
 BEGIN
     FOR r IN
         SELECT *
@@ -310,7 +297,7 @@ BEGIN
         WHERE table_name = p_table_name
         ORDER BY rule_id
     LOOP
-        has_enabled_rule := true;
+        has_rule := true;
         rule_passed := true;
 
         FOR c IN
@@ -341,7 +328,7 @@ BEGIN
     END LOOP;
 
     /* Fail closed: if no rule is defined for an RLS-protected table, deny access. */
-    IF NOT has_enabled_rule THEN
+    IF NOT has_rule THEN
         RETURN false;
     END IF;
 
