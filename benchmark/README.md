@@ -270,6 +270,3 @@ It compares:
 3. A more complex ABAC/RLS policy configuration.
 
 The results help quantify the tradeoff between flexible, centralized database-level authorization and the additional runtime overhead introduced by dynamic policy evaluation.
-
-```
-```
