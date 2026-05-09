@@ -1,4 +1,3 @@
-
 # ABAC-PG University Project
 
 ## Overview
@@ -138,44 +137,56 @@ pgabac/
 ├── Makefile
 ├── README.md
 ├── pg_abac.c
+├── pg_abac.h
 ├── pg_abac.control
 ├── sql/
-│   └── pg_abac--1.0.sql
+│   ├── pg_abac--1.0.sql
+│   └── performance-improvement.sql
 ├── database/
-│   ├── university_schema.sql
-│   └── university_data.sql
+│   ├── university_schema.sql
+│   └── university_data.sql
 ├── abac/
-│   └── setup_abac.sql
+│   └── setup_abac.sql
 ├── demo/
-│   └── demo.sql
+│   ├── demo.sql
+│   └── demo_script.sql
 ├── test/
-│   └── test_abac.sql
+│   ├── test_abac.sql
+│   └── test_output.txt
 ├── benchmark/
-│   ├── 01_setup.sql
-│   ├── baseline_select.sql
-│   ├── abac_select.sql
-│   ├── abac_select_with_set_role.sql
-│   ├── policy_complexity.sql
-│   ├── run_benchmark.sh
-│   └── README.md
+│   ├── 01_setup.sql
+│   ├── baseline_select.sql
+│   ├── abac_select.sql
+│   ├── abac_select_with_set_role.sql
+│   ├── policy_complexity.sql
+│   ├── run_benchmark.sh
+│   ├── README.md
+│   └── results/
+│       ├── baseline.txt
+│       ├── abac_simple.txt
+│       └── abac_complex.txt
 └── load_initial_project.sql
 ```
 
 ## Main Files
 
-| File                             | Purpose                                                                 |
-| -------------------------------- | ----------------------------------------------------------------------- |
-| `pg_abac.c`                      | C source file for PostgreSQL extension functions                        |
-| `pg_abac.control`                | PostgreSQL extension control file                                       |
-| `sql/pg_abac--1.0.sql`           | SQL extension file containing metadata tables and SQL/PLpgSQL functions |
-| `Makefile`                       | PGXS build script for compiling and installing the extension            |
-| `database/university_schema.sql` | University database schema                                              |
-| `database/university_data.sql`   | University database sample data                                         |
-| `abac/setup_abac.sql`            | ABAC roles, attributes, rules, and RLS policy setup                     |
-| `demo/demo.sql`                  | Demonstration script showing ABAC access behavior                       |
-| `test/test_abac.sql`             | Test suite for correctness and edge cases                               |
-| `benchmark/`                     | pgbench performance evaluation scripts                                  |
-| `load_initial_project.sql`       | Main loading script for extension, schema, data, and ABAC setup         |
+| File | Purpose |
+| --- | --- |
+| `pg_abac.c` | C source file for PostgreSQL extension functions |
+| `pg_abac.h` | Header file declaring PostgreSQL extension C functions |
+| `pg_abac.control` | PostgreSQL extension control file |
+| `sql/pg_abac--1.0.sql` | SQL extension file containing metadata tables and SQL/PLpgSQL functions |
+| `sql/performance-improvement.sql` | Optional indexing script used to improve metadata lookup performance |
+| `Makefile` | PGXS build script for compiling and installing the extension |
+| `database/university_schema.sql` | University database schema |
+| `database/university_data.sql` | University database sample data |
+| `abac/setup_abac.sql` | ABAC roles, attributes, rules, and RLS policy setup |
+| `demo/demo.sql` | Demonstration script showing ABAC access behavior |
+| `demo/demo_script.sql` | Scripted demo flow for presentation or screencast |
+| `test/test_abac.sql` | Test suite for correctness and edge cases |
+| `test/test_output.txt` | Saved test output showing successful execution |
+| `benchmark/` | pgbench performance evaluation scripts and results |
+| `load_initial_project.sql` | Main loading script for extension, schema, data, and ABAC setup |
 
 ## ABAC Metadata Schema
 
@@ -183,13 +194,13 @@ pgabac/
 
 Stores subject/user attributes.
 
-| Column            | Purpose                                                                            |
-| ----------------- | ---------------------------------------------------------------------------------- |
-| `username`        | PostgreSQL role name, such as `cs_user`                                            |
-| `attribute_name`  | Attribute name, such as `department`, `status`, `clearance`, or `salary_threshold` |
-| `attribute_value` | Attribute value, such as `Comp. Sci.`, `active`, or `70000`                        |
-| `created_at`      | Timestamp when the attribute was created                                           |
-| `updated_at`      | Timestamp when the attribute was last updated                                      |
+| Column | Purpose |
+| --- | --- |
+| `username` | PostgreSQL role name, such as `cs_user` |
+| `attribute_name` | Attribute name, such as `department`, `status`, `clearance`, or `salary_threshold` |
+| `attribute_value` | Attribute value, such as `Comp. Sci.`, `active`, or `70000` |
+| `created_at` | Timestamp when the attribute was created |
+| `updated_at` | Timestamp when the attribute was last updated |
 
 Example:
 
@@ -203,15 +214,15 @@ SELECT abac_set_user_attribute('cs_user', 'clearance', 'normal');
 
 Stores one logical rule for one protected table.
 
-| Column        | Purpose                             |
-| ------------- | ----------------------------------- |
-| `rule_id`     | Unique rule identifier              |
-| `rule_name`   | Human-readable rule name            |
-| `table_name`  | Table protected by the rule         |
-| `description` | Description of the rule             |
-| `created_at`  | Timestamp when the rule was created |
+| Column | Purpose |
+| --- | --- |
+| `rule_id` | Unique rule identifier |
+| `rule_name` | Human-readable rule name |
+| `table_name` | Table protected by the rule |
+| `description` | Description of the rule |
+| `created_at` | Timestamp when the rule was created |
 
-In this implementation, every rule stored in `abac_rules` is considered active. To remove a rule from evaluation, the administrator deletes the rule from `abac_rules`; related conditions are removed through cascading deletes.
+In this implementation, every rule stored in `abac_rules` is considered active. The project does not use an `is_enabled` column. To remove a rule from evaluation, the administrator deletes the rule from `abac_rules`; related conditions are removed through cascading deletes.
 
 Multiple rules for the same table are evaluated using OR semantics.
 
@@ -219,17 +230,17 @@ Multiple rules for the same table are evaluated using OR semantics.
 
 Stores conditions inside a rule.
 
-| Column            | Purpose                                                                       |
-| ----------------- | ----------------------------------------------------------------------------- |
-| `condition_id`    | Unique condition identifier                                                   |
-| `rule_id`         | Parent rule identifier                                                        |
-| `condition_order` | Display or evaluation order                                                   |
-| `column_name`     | Object/table column, such as `dept_name` or `salary`                          |
-| `user_attribute`  | Subject/user attribute, such as `department`, `status`, or `salary_threshold` |
-| `operator`        | Comparison operator                                                           |
-| `constant_value`  | Constant value for attribute-to-literal comparisons                           |
-| `value_type`      | Value type, such as `text` or `numeric`                                       |
-| `created_at`      | Timestamp when the condition was created                                      |
+| Column | Purpose |
+| --- | --- |
+| `condition_id` | Unique condition identifier |
+| `rule_id` | Parent rule identifier |
+| `condition_order` | Display or evaluation order |
+| `column_name` | Object/table column, such as `dept_name` or `salary` |
+| `user_attribute` | Subject/user attribute, such as `department`, `status`, or `salary_threshold` |
+| `operator` | Comparison operator |
+| `constant_value` | Constant value for attribute-to-literal comparisons |
+| `value_type` | Value type, such as `text` or `numeric` |
+| `created_at` | Timestamp when the condition was created |
 
 Conditions with the same `rule_id` are combined using logical AND.
 
@@ -241,9 +252,9 @@ Stores or updates a user attribute.
 
 ```sql
 SELECT abac_set_user_attribute(
-    'cs_user',
-    'department',
-    'Comp. Sci.'
+    'cs_user',
+    'department',
+    'Comp. Sci.'
 );
 ```
 
@@ -253,8 +264,8 @@ Returns the value of a user attribute.
 
 ```sql
 SELECT abac_get_user_attribute(
-    'cs_user',
-    'department'
+    'cs_user',
+    'department'
 );
 ```
 
@@ -264,9 +275,9 @@ Creates an ABAC rule for a table.
 
 ```sql
 SELECT abac_add_rule(
-    'student_department_rule',
-    'student',
-    'Allow users to view students from their own department'
+    'student_department_rule',
+    'student',
+    'Allow users to view students from their own department'
 );
 ```
 
@@ -278,13 +289,13 @@ Example attribute-to-attribute condition:
 
 ```sql
 SELECT abac_add_condition(
-    'student_department_rule',
-    'dept_name',
-    'department',
-    '=',
-    NULL,
-    'text',
-    1
+    'student_department_rule',
+    'dept_name',
+    'department',
+    '=',
+    NULL,
+    'text',
+    1
 );
 ```
 
@@ -292,13 +303,13 @@ Example attribute-to-constant condition:
 
 ```sql
 SELECT abac_add_condition(
-    'student_department_rule',
-    NULL,
-    'status',
-    '=',
-    'active',
-    'text',
-    2
+    'student_department_rule',
+    NULL,
+    'status',
+    '=',
+    'active',
+    'text',
+    2
 );
 ```
 
@@ -315,12 +326,12 @@ CREATE POLICY abac_student_select
 ON student
 FOR SELECT
 USING (
-    abac_check_access(
-        'student',
-        jsonb_build_object(
-            'dept_name', dept_name
-        )
-    )
+    abac_check_access(
+        'student',
+        jsonb_build_object(
+            'dept_name', dept_name
+        )
+    )
 );
 ```
 
@@ -411,9 +422,9 @@ The ABAC decision process is:
 1. Identify the current PostgreSQL user.
 2. Load ABAC rules for the requested table.
 3. For each rule:
-   a. Load all conditions for the rule.
-   b. Evaluate each condition.
-   c. Combine conditions using AND.
+   a. Load all conditions for the rule.
+   b. Evaluate each condition.
+   c. Combine conditions using AND.
 4. If any rule succeeds, allow access.
 5. If no rule succeeds, deny access.
 ```
@@ -422,18 +433,18 @@ In logical form:
 
 ```text
 allow access =
-    rule_1_success
-    OR rule_2_success
-    OR rule_3_success
+    rule_1_success
+    OR rule_2_success
+    OR rule_3_success
 ```
 
 Where each rule is:
 
 ```text
 rule_success =
-    condition_1
-    AND condition_2
-    AND condition_3
+    condition_1
+    AND condition_2
+    AND condition_3
 ```
 
 The engine follows a fail-closed approach. If required user attributes or row attributes are missing, the access check fails.
@@ -446,11 +457,11 @@ From the project folder, start a PostgreSQL container:
 
 ```bash
 docker run --name pg-abac \
-  -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=university_abac \
-  -p 5434:5432 \
-  -v "$PWD":/pg_abac \
-  -d postgres:15
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=university_abac \
+  -p 5434:5432 \
+  -v "$PWD":/pg_abac \
+  -d postgres:15
 ```
 
 Enter the container:
@@ -543,9 +554,9 @@ SELECT abac_set_user_attribute('cs_user', 'clearance', 'normal');
 
 ```sql
 SELECT abac_add_rule(
-    'student_department_access',
-    'student',
-    'Allow active users to view students in their own department'
+    'student_department_access',
+    'student',
+    'Allow active users to view students in their own department'
 );
 ```
 
@@ -553,13 +564,13 @@ SELECT abac_add_rule(
 
 ```sql
 SELECT abac_add_condition(
-    'student_department_access',
-    'dept_name',
-    'department',
-    '=',
-    NULL,
-    'text',
-    1
+    'student_department_access',
+    'dept_name',
+    'department',
+    '=',
+    NULL,
+    'text',
+    1
 );
 ```
 
@@ -573,13 +584,13 @@ student.dept_name = user.department
 
 ```sql
 SELECT abac_add_condition(
-    'student_department_access',
-    NULL,
-    'status',
-    '=',
-    'active',
-    'text',
-    2
+    'student_department_access',
+    NULL,
+    'status',
+    '=',
+    'active',
+    'text',
+    2
 );
 ```
 
@@ -602,12 +613,12 @@ CREATE POLICY abac_student_select
 ON student
 FOR SELECT
 USING (
-    abac_check_access(
-        'student',
-        jsonb_build_object(
-            'dept_name', dept_name
-        )
-    )
+    abac_check_access(
+        'student',
+        jsonb_build_object(
+            'dept_name', dept_name
+        )
+    )
 );
 ```
 
@@ -645,12 +656,12 @@ inactive_user
 
 Expected behavior:
 
-| User            | Expected Access                               |
-| --------------- | --------------------------------------------- |
-| `cs_user`       | Rows matching the Computer Science department |
-| `bio_user`      | Rows matching the Biology department          |
-| `registrar`     | Broader access through high clearance         |
-| `inactive_user` | No access because status is not active        |
+| User | Expected Access |
+| --- | --- |
+| `cs_user` | Rows matching the Computer Science department |
+| `bio_user` | Rows matching the Biology department |
+| `registrar` | Broader access through high clearance |
+| `inactive_user` | No access because status is not active |
 
 ## Running the Test Suite
 
@@ -674,14 +685,15 @@ The test suite verifies:
 10. Missing row attributes.
 11. Fail-closed behavior.
 12. Attribute updates.
-13. Rule deletion.
-14. Rule deletion and cascading condition cleanup.
+13. Rule deletion and cascading condition cleanup.
 
 Expected final output:
 
 ```text
 All ABAC tests passed.
 ```
+
+The repository also includes `test/test_output.txt`, which contains the saved output from a successful test run.
 
 ## Benchmarking
 
@@ -736,7 +748,7 @@ The baseline workload uses direct SQL predicates:
 SELECT COUNT(*)
 FROM bench_docs_baseline
 WHERE dept_name = 'Comp. Sci.'
-  AND region = 'US';
+  AND region = 'US';
 ```
 
 The ABAC workload queries the protected table without manually writing the access-control predicate:
@@ -758,29 +770,30 @@ The ABAC function then evaluates metadata rules and user attributes to determine
 
 ## Benchmark Results
 
-
-| Scenario                 |  TPS         |  Average Latency | Notes                               |
-| -------------------------| ------------ | ---------------- | ----------------------------------- |
-| Baseline explicit filter | 14661.776280 | 0.682 ms         | No RLS                              |
-| ABAC simple policy       | 4.884729     | 2047.196 ms      | RLS with metadata-driven ABAC check |
-| ABAC complex policy      | 2.097811     | 4766.873 ms      | Multiple ABAC rules and conditions  |
+| Scenario | TPS | Average Latency | Notes |
+| --- | ---: | ---: | --- |
+| Baseline explicit filter | 14661.776280 | 0.682 ms | No RLS |
+| ABAC simple policy | 4.884729 | 2047.196 ms | RLS with metadata-driven ABAC check |
+| ABAC complex policy | 2.097811 | 4766.873 ms | Multiple ABAC rules and conditions |
 
 ## Benchmark Environment
 
-| Item               | Value        |
-| ------------------ | ------------ |
-| PostgreSQL version | 15.6         |
-| Benchmark duration | 60 s         |
-| Number of clients  | 10           |
-| Number of jobs     | 4            |
+| Item | Value |
+| --- | --- |
+| PostgreSQL version | 15.6 |
+| Benchmark duration | 60 s |
+| Number of clients | 10 |
+| Number of jobs | 4 |
 
 ## Benchmark Analysis
 
-The baseline workload is expected to achieve the highest throughput because it does not invoke RLS or metadata-driven policy checks.
+The baseline workload achieves the highest throughput because it does not invoke RLS or metadata-driven policy checks.
 
-The simple ABAC workload is expected to have additional overhead because PostgreSQL evaluates an RLS policy and calls `abac_check_access(...)`.
+The simple ABAC workload has additional overhead because PostgreSQL evaluates an RLS policy and calls `abac_check_access(...)` for row-level authorization.
 
-The complex ABAC workload is expected to have the highest overhead because the policy engine evaluates multiple rules and multiple conditions.
+The complex ABAC workload has the highest overhead because the policy engine evaluates multiple rules and multiple conditions.
+
+The current prototype prioritizes correctness, flexibility, and clear policy semantics over performance. The large overhead is mainly due to dynamic metadata lookup and per-row PL/pgSQL rule evaluation inside RLS.
 
 Overall, the benchmark demonstrates the tradeoff between flexible centralized authorization and additional runtime policy evaluation cost.
 
@@ -791,9 +804,10 @@ Generative AI tools were used as a support aid during this project.
 AI assistance was used for:
 
 1. Reviewing ABAC and RLS design ideas.
-2. Drafting parts of the README documentation.
-3. Suggesting test cases and benchmark organization.
-4. Helping identify documentation inconsistencies and cleanup tasks.
+2. Drafting and polishing parts of the README documentation.
+3. Suggesting possible SQL test cases for equality, numeric comparison, LIKE/NOT LIKE, AND conditions, OR rules, and fail-closed behavior.
+4. Suggesting the organization of the benchmark scripts and benchmark explanation.
+5. Helping identify documentation inconsistencies and cleanup tasks.
 
 The final design, source code, SQL scripts, testing, execution, debugging, and benchmark verification were reviewed and completed by the project team.
 
@@ -850,5 +864,3 @@ The extension supports:
 9. pgbench-based performance evaluation.
 
 The result is a flexible database-level authorization engine that centralizes row-level access control inside PostgreSQL.
-
-```
