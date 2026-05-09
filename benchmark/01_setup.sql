@@ -35,9 +35,9 @@ WHERE username IN (
     'bench_inactive_user'
 );
 
-/* -------------------------------------------------------------------------
+/* 
  * Benchmark roles
- * ------------------------------------------------------------------------- */
+ */
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'bench_cs_user') THEN
@@ -72,12 +72,12 @@ TO bench_cs_user, bench_bio_user, bench_registrar, bench_inactive_user;
 GRANT EXECUTE ON FUNCTION abac_compare_values(text, text, text, text)
 TO bench_cs_user, bench_bio_user, bench_registrar, bench_inactive_user;
 
-/* -------------------------------------------------------------------------
+/*
  * Synthetic benchmark data
  *
  * 100,000 rows is enough for a class project benchmark.
  * Increase to 1,000,000 if your machine can handle it.
- * ------------------------------------------------------------------------- */
+ */
 CREATE TABLE bench_docs_baseline (
     doc_id integer PRIMARY KEY,
     dept_name text NOT NULL,
@@ -140,9 +140,9 @@ TO bench_cs_user, bench_bio_user, bench_registrar, bench_inactive_user;
 GRANT SELECT ON bench_docs_abac
 TO bench_cs_user, bench_bio_user, bench_registrar, bench_inactive_user;
 
-/* -------------------------------------------------------------------------
+/*
  * User attributes
- * ------------------------------------------------------------------------- */
+ */
 SELECT abac_set_user_attribute('bench_cs_user', 'department', 'Comp. Sci.');
 SELECT abac_set_user_attribute('bench_cs_user', 'region', 'US');
 SELECT abac_set_user_attribute('bench_cs_user', 'status', 'active');
@@ -167,7 +167,7 @@ SELECT abac_set_user_attribute('bench_inactive_user', 'status', 'inactive');
 SELECT abac_set_user_attribute('bench_inactive_user', 'clearance', 'high');
 SELECT abac_set_user_attribute('bench_inactive_user', 'spend_limit', '999999');
 
-/* -------------------------------------------------------------------------
+/* 
  * ABAC rules for benchmark table
  *
  * Rule 1:
@@ -182,7 +182,7 @@ SELECT abac_set_user_attribute('bench_inactive_user', 'spend_limit', '999999');
  * Rule 3:
  *   row.amount <= user.spend_limit
  *   AND user.status = 'active'
- * ------------------------------------------------------------------------- */
+ */
 SELECT abac_add_rule(
     'bench_docs_dept_region_active',
     'bench_docs_abac',

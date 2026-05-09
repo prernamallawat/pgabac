@@ -13,14 +13,14 @@ apt install -y build-essential postgresql-server-dev-15
 # 4. Build and install extension:
 cd /pg_abac
 make clean
-make PG_CONFIG=/usr/lib/postgresql/15/bin/pg_config
-make install PG_CONFIG=/usr/lib/postgresql/15/bin/pg_config
+make
+make install
 
 # 5. Load complete project:
 psql -U postgres -d university_abac -f load_initial_project.sql
 
 # 6. Run demo:
-psql -U postgres -d university_abac -f demo/demo_script.sql
+psql -U postgres -d university_abac -f demo/demo.sql
 
 # 7. Run verification:
 psql -U postgres -d university_abac -f abac/verify_abac.sql

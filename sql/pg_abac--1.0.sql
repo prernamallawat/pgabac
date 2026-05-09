@@ -45,7 +45,6 @@ CREATE TABLE IF NOT EXISTS abac_rules (
     rule_name text NOT NULL UNIQUE,
     table_name text NOT NULL,
     description text,
-    is_enabled boolean NOT NULL DEFAULT true,
     created_at timestamptz NOT NULL DEFAULT now()
 );
 
@@ -85,7 +84,6 @@ SELECT
     c.operator,
     c.constant_value,
     c.value_type,
-    r.is_enabled,
     r.created_at
 FROM abac_rules r
 JOIN abac_rule_conditions c ON c.rule_id = r.rule_id;
@@ -133,13 +131,12 @@ AS $$
 DECLARE
     v_rule_id bigint;
 BEGIN
-    INSERT INTO abac_rules(rule_name, table_name, description, is_enabled)
-    VALUES (p_rule_name, p_table_name, p_description, true)
+    INSERT INTO abac_rules(rule_name, table_name, description)
+    VALUES (p_rule_name, p_table_name, p_description)
     ON CONFLICT (rule_name)
     DO UPDATE SET
         table_name = EXCLUDED.table_name,
-        description = EXCLUDED.description,
-        is_enabled = true
+        description = EXCLUDED.description
     RETURNING rule_id INTO v_rule_id;
 
     RETURN v_rule_id;
@@ -214,24 +211,6 @@ BEGIN
     PERFORM abac_add_condition(p_policy_name, p_column_name, p_user_attribute, p_operator, p_constant_value, 'text', 1);
     RETURN v_rule_id;
 END;
-$$;
-
-CREATE OR REPLACE FUNCTION abac_disable_rule(p_rule_name text)
-RETURNS void
-LANGUAGE sql
-AS $$
-    UPDATE abac_rules
-    SET is_enabled = false
-    WHERE rule_name = p_rule_name
-$$;
-
-CREATE OR REPLACE FUNCTION abac_enable_rule(p_rule_name text)
-RETURNS void
-LANGUAGE sql
-AS $$
-    UPDATE abac_rules
-    SET is_enabled = true
-    WHERE rule_name = p_rule_name
 $$;
 
 CREATE OR REPLACE FUNCTION abac_disable_policy(p_policy_name text)
@@ -329,7 +308,6 @@ BEGIN
         SELECT *
         FROM abac_rules
         WHERE table_name = p_table_name
-          AND is_enabled = true
         ORDER BY rule_id
     LOOP
         has_enabled_rule := true;

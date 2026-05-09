@@ -8,9 +8,9 @@
 
 CREATE EXTENSION IF NOT EXISTS pg_abac;
 
-/* -------------------------------------------------------------------------
+/*
  * Assertion helpers
- * ------------------------------------------------------------------------- */
+*/
 CREATE OR REPLACE FUNCTION pg_temp.assert_eq_bigint(
     p_actual bigint,
     p_expected bigint,
@@ -63,9 +63,9 @@ BEGIN
 END;
 $$;
 
-/* -------------------------------------------------------------------------
+/*
  * Test roles
- * ------------------------------------------------------------------------- */
+*/
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'abac_alice') THEN
@@ -104,9 +104,9 @@ TO abac_alice, abac_bob, abac_carol, abac_dana, abac_erin;
 GRANT EXECUTE ON FUNCTION abac_compare_values(text, text, text, text)
 TO abac_alice, abac_bob, abac_carol, abac_dana, abac_erin;
 
-/* -------------------------------------------------------------------------
+/*
  * Clean fixture data so the test is repeatable
- * ------------------------------------------------------------------------- */
+*/
 DROP TABLE IF EXISTS abac_test_documents CASCADE;
 
 DELETE FROM abac_rules
@@ -165,9 +165,9 @@ USING (
     )
 );
 
-/* -------------------------------------------------------------------------
+/* 
  * Subject/user attributes
- * ------------------------------------------------------------------------- */
+*/
 SELECT abac_set_user_attribute('abac_alice', 'department', 'CS');
 SELECT abac_set_user_attribute('abac_alice', 'region', 'US');
 SELECT abac_set_user_attribute('abac_alice', 'status', 'active');
@@ -202,9 +202,9 @@ SELECT abac_set_user_attribute('abac_dana', 'spend_limit', '5000');
 SELECT abac_set_user_attribute('abac_erin', 'department', 'CS');
 SELECT abac_set_user_attribute('abac_erin', 'status', 'active');
 
-/* -------------------------------------------------------------------------
+/*
  * ABAC rules for fixture table
- * ------------------------------------------------------------------------- */
+*/
 
 /*
  * Rule 1:
@@ -369,9 +369,9 @@ SELECT abac_disable_rule(rule_name)
 FROM abac_rules
 WHERE table_name = 'abac_test_documents';
 
-/* -------------------------------------------------------------------------
+/*
  * Core function/operator tests
- * ------------------------------------------------------------------------- */
+*/
 SELECT pg_temp.assert_true(
     abac_compare_values('CS', '=', 'CS', 'text'),
     'text equality operator'
@@ -412,9 +412,9 @@ SELECT pg_temp.assert_false(
     'invalid numeric cast fails closed'
 );
 
-/* -------------------------------------------------------------------------
+/* 
  * Test 1: fail closed when no enabled rule exists for an RLS-protected table
- * ------------------------------------------------------------------------- */
+ */
 SET ROLE abac_alice;
 SELECT COUNT(*) AS actual FROM abac_test_documents \gset
 RESET ROLE;
@@ -425,7 +425,7 @@ SELECT pg_temp.assert_eq_bigint(
     'fail closed when all table rules are disabled'
 );
 
-/* -------------------------------------------------------------------------
+/* 
  * Test 2: equality + constant/literal + AND semantics
  *
  * Expected:
@@ -433,7 +433,7 @@ SELECT pg_temp.assert_eq_bigint(
  * Bob sees Biology + EU rows.
  * Carol is inactive, so she sees nothing.
  * Erin is missing region, so she sees nothing.
- * ------------------------------------------------------------------------- */
+ */
 SELECT abac_enable_rule('t_doc_dept_region_active');
 
 SET ROLE abac_alice;
@@ -476,13 +476,13 @@ SELECT pg_temp.assert_eq_bigint(
     'missing user attribute denies access'
 );
 
-/* -------------------------------------------------------------------------
+/* 
  * Test 3: multiple rules per table are OR-ed
  *
  * Expected:
  * Dana has high clearance and active status, so she sees all rows.
  * Carol has high clearance but inactive status, so she still sees no rows.
- * ------------------------------------------------------------------------- */
+ */
 SELECT abac_enable_rule('t_doc_high_clearance_active');
 
 SET ROLE abac_dana;
@@ -505,9 +505,9 @@ SELECT pg_temp.assert_eq_bigint(
     'OR override still requires active status'
 );
 
-/* -------------------------------------------------------------------------
+/*
  * Test 4: numeric comparison against user attribute
- * ------------------------------------------------------------------------- */
+*/
 SELECT abac_disable_rule('t_doc_dept_region_active');
 SELECT abac_disable_rule('t_doc_high_clearance_active');
 SELECT abac_enable_rule('t_doc_amount_under_limit_active');
@@ -546,9 +546,9 @@ SELECT pg_temp.assert_eq_bigint(
 
 SELECT abac_set_user_attribute('abac_alice', 'spend_limit', '1000');
 
-/* -------------------------------------------------------------------------
+/*
  * Test 5: LIKE pattern comparison against user attribute
- * ------------------------------------------------------------------------- */
+*/
 SELECT abac_disable_rule('t_doc_amount_under_limit_active');
 SELECT abac_enable_rule('t_doc_title_like_active');
 
@@ -572,9 +572,9 @@ SELECT pg_temp.assert_eq_bigint(
     'LIKE rule: Bob title_pattern Bio%'
 );
 
-/* -------------------------------------------------------------------------
+/*
  * Test 6: missing row attribute in jsonb payload fails closed
- * ------------------------------------------------------------------------- */
+ */
 SELECT abac_disable_rule('t_doc_title_like_active');
 SELECT abac_enable_rule('t_doc_missing_json_attribute');
 
@@ -588,9 +588,9 @@ SELECT pg_temp.assert_eq_bigint(
     'missing row attribute in policy JSON denies access'
 );
 
-/* -------------------------------------------------------------------------
+/*
  * Test 7: policy metadata constraints reject invalid definitions
- * ------------------------------------------------------------------------- */
+*/
 DO $$
 BEGIN
     BEGIN
@@ -642,9 +642,9 @@ BEGIN
     END;
 END $$;
 
-/* -------------------------------------------------------------------------
+/*
  * Test 8: backward-compatible single-condition policy helper
- * ------------------------------------------------------------------------- */
+*/
 SELECT abac_add_policy(
     't_doc_legacy_single_condition_policy',
     'abac_test_documents',
@@ -670,9 +670,9 @@ SELECT pg_temp.assert_eq_bigint(
     'legacy abac_add_policy helper: Alice sees all CS docs'
 );
 
-/* -------------------------------------------------------------------------
+/*
  * Additional coverage tests
- * ------------------------------------------------------------------------- */
+*/
 
 SELECT pg_temp.assert_true(
     abac_compare_values('50', '<', '100', 'numeric'),
@@ -783,7 +783,7 @@ SELECT pg_temp.assert_eq_bigint(
 
 SELECT abac_set_user_attribute('abac_alice', 'department', 'CS');
 
-/* -------------------------------------------------------------------------
+/*
  * Final summary
- * ------------------------------------------------------------------------- */
+ */
 \echo 'All ABAC tests passed.'

@@ -91,7 +91,6 @@ Stores one rule for one table.
 | `rule_name` | Human-readable rule name. |
 | `table_name` | Table protected by the rule. |
 | `description` | Explanation of the rule. |
-| `is_enabled` | Allows enabling/disabling a rule without deleting it. |
 | `created_at` | Audit timestamp. |
 
 Multiple enabled rules for the same table are evaluated using OR semantics.
