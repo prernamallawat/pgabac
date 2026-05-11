@@ -366,11 +366,6 @@ DO
  
 (1 row)
 
- abac_add_policy 
------------------
-              17
-(1 row)
-
 SET
 RESET
  assert_eq_bigint 
