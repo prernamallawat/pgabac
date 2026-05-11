@@ -22,6 +22,11 @@ AND current_user.status = 'active'
 
 The extension provides a metadata-driven authorization framework where access rules can be defined and updated without rewriting every application query.
 
+## Screencast video recording
+
+The video is uploaded on the following google drive link
+https://drive.google.com/file/d/1z6Bp9wJksh1ZTfH9WxokOTp1PGwVps3Q/view?usp=sharing
+
 ## Project Goals
 
 The main goals of this project are:
@@ -834,12 +839,6 @@ Possible future enhancements include:
 6. Audit logging for access decisions.
 7. More extensive benchmarks with different query types and table sizes.
 8. Integration with application-level identity providers.
-
-
-## Screencast video recording
-
-The video is uploaded on the following google drive link
-https://drive.google.com/file/d/1z6Bp9wJksh1ZTfH9WxokOTp1PGwVps3Q/view?usp=sharing
 
 ## Conclusion
 
