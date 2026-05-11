@@ -191,28 +191,6 @@ BEGIN
 END;
 $$;
 
-/* Backward-compatible helper: creates a single-condition rule. */
-CREATE OR REPLACE FUNCTION abac_add_policy(
-    p_policy_name text,
-    p_table_name text,
-    p_column_name text,
-    p_user_attribute text,
-    p_operator text DEFAULT '=',
-    p_constant_value text DEFAULT NULL
-)
-RETURNS bigint
-LANGUAGE plpgsql
-AS $$
-DECLARE
-    v_rule_id bigint;
-BEGIN
-    v_rule_id := abac_add_rule(p_policy_name, p_table_name, 'Single-condition rule created through abac_add_policy');
-    DELETE FROM abac_rule_conditions WHERE rule_id = v_rule_id;
-    PERFORM abac_add_condition(p_policy_name, p_column_name, p_user_attribute, p_operator, p_constant_value, 'text', 1);
-    RETURN v_rule_id;
-END;
-$$;
-
 
 CREATE OR REPLACE FUNCTION abac_compare_values(
     p_left_value text,

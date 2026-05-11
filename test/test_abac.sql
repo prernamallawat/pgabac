@@ -664,30 +664,6 @@ BEGIN
 END $$;
 
 /*
- * Test 8: backward-compatible single-condition policy helper
-*/
-SELECT pg_temp.clear_doc_rules();
-
-SELECT abac_add_policy(
-    't_doc_legacy_single_condition_policy',
-    'abac_test_documents',
-    'dept',
-    'department',
-    '=',
-    NULL
-);
-
-SET ROLE abac_alice;
-SELECT COUNT(*) AS actual FROM abac_test_documents \gset
-RESET ROLE;
-
-SELECT pg_temp.assert_eq_bigint(
-    :actual,
-    3,
-    'legacy abac_add_policy helper: Alice sees all CS docs'
-);
-
-/*
  * Additional coverage tests
 */
 
